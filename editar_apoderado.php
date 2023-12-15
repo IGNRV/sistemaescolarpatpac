@@ -3,9 +3,9 @@
 session_start();
 require_once 'db.php';
 
-/* ini_set('display_errors', 1);
+ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-error_reporting(E_ALL); */
+error_reporting(E_ALL); 
 
 
 if (!isset($_SESSION['EMAIL'])) {
@@ -87,20 +87,19 @@ if (isset($_POST['actualizar_apoderado'])) {
               $tutorAcademico != $apoderado['TUTOR_ACADEMICO'] ||
               $tutorEconomico != $apoderado['TUTOR_ECONOMICO'];
 
-
         if ($hayCambios) {
             // Actualiza los datos en la base de datos con el ID_COMUNA e ID_REGION
         	$fechaNac2 = date("Y-m-d", strtotime($fechaNac));
             $stmtActualizar = $conn->prepare("UPDATE APODERADO SET PARENTESCO = ?, NOMBRE = ?, AP_PATERNO = ?, AP_MATERNO = ?, FECHA_NAC = ?, CALLE = ?, NRO_CALLE = ?, OBS_DIRECCION = ?, VILLA = ?, ID_COMUNA = ?, ID_REGION = ?, FONO_PART = ?, MAIL_PART = ?, MAIL_LAB = ?, TUTOR_ACADEMICO = ?, RUT_APODERADO = ?, TUTOR_ECONOMICO = ? WHERE RUT_APODERADO = ?");
             $stmtActualizar->bind_param("ssssssssssssssssis", $parentesco, $nombre, $apellidoPaterno, $apellidoMaterno, $fechaNac2, $calle, $nCalle, $obsDireccion, $villaPoblacion, $comuna, $idRegion, $fonoPart, $mailPart, $mailLab, $tutorAcademico, $rut, $tutorEconomico, $rutOriginal);
             $stmtActualizar->execute();
-
             if ($stmtActualizar->affected_rows > 0) {
                 $_SESSION['mensaje_exito'] = "Datos del apoderado actualizados correctamente.";
                 header("Location: https://antilen.pat-pac.cl/sistemaescolar/bienvenido.php?page=padres_apoderados");
                 exit;
             } else {
                 $mensaje = "Error al actualizar los datos.";
+                var_dump($conn);
             }
         } else {
             // Si no hay cambios, envía un mensaje de éxito
@@ -145,7 +144,7 @@ if ($apoderado != null) {
     if (esRutValido($apoderado['RUT_APODERADO'])) {
         $valorRut = $apoderado['RUT_APODERADO']; // Muestra el RUT si es válido
     } else {
-        $valorRut = "-"; // Muestra un guion si el RUT no es válido
+        $valorRut = ""; // Muestra un guion si el RUT no es válido
     }
 }
 ?>
