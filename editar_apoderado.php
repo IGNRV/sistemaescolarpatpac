@@ -149,9 +149,12 @@ if ($apoderado != null) {
 }
 ?>
 <head>
-<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
 </head>
+
 <?php if (!empty($mensaje)): ?>
     <div class="alert alert-warning"><?php echo $mensaje; ?></div>
 <?php endif; ?>
@@ -195,7 +198,7 @@ if ($apoderado != null) {
 
                             <div class="form-group">
                                 <label for="fechaNac">Fecha de Nacimiento</label>
-                                <input type="text" class="form-control" name="fecha_nac" value="<?php echo $fechaNacFormatted; ?>">
+                                <input type="text" class="form-control" id="fechaNac" name="fecha_nac" value="<?php echo $fechaNacFormatted; ?>">
                             </div>
 
                             <div class="form-group">
@@ -267,5 +270,12 @@ if ($apoderado != null) {
             </div>
         </div>
     </div>
+    <script>
+    $(function() {
+        $("#fechaNac").datepicker({
+            dateFormat: "dd-mm-yy"
+        });
+    });
+    </script>
 <?php endif; ?>
 

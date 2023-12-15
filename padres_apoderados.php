@@ -9,7 +9,7 @@ if (!isset($_SESSION['EMAIL'])) {
 require_once 'db.php';
 
 // Consulta para obtener los nombres de los alumnos junto con sus IDs
-$consultaAlumnos = "SELECT ID_ALUMNO, NOMBRE, AP_PATERNO, AP_MATERNO FROM ALUMNO";
+$consultaAlumnos = "SELECT ID_ALUMNO, NOMBRE, AP_PATERNO, AP_MATERNO FROM ALUMNO ORDER BY AP_PATERNO, AP_MATERNO ASC";
 $resultadoAlumnos = $conn->query($consultaAlumnos);
 $alumnos = $resultadoAlumnos->fetch_all(MYSQLI_ASSOC);
 
@@ -24,7 +24,7 @@ $rutAlumno = ''; // Inicializa la variable $rutAlumno
 
 
 // Consulta para obtener los apoderados
-$consultaApoderados = $conn->query("SELECT ID_APODERADO, NOMBRE, AP_PATERNO, AP_MATERNO FROM APODERADO");
+$consultaApoderados = $conn->query("SELECT ID_APODERADO, NOMBRE, AP_PATERNO, AP_MATERNO FROM APODERADO ORDER BY AP_PATERNO, AP_MATERNO ASC");
 $listaApoderados = $consultaApoderados->fetch_all(MYSQLI_ASSOC);
 
 $consultaComunas = $conn->query("SELECT ID_COMUNA, ID_REGION, NOM_COMUNA FROM COMUNA ORDER BY NOM_COMUNA ASC");
@@ -343,7 +343,7 @@ if (isset($_POST['buscarAlumnoNombre'])) {
     <?php foreach ($alumnos as $alumno): ?>
         <option value="<?php echo htmlspecialchars($alumno['ID_ALUMNO']); ?>"
             <?php echo ($alumno['ID_ALUMNO'] == $idAlumnoSeleccionado) ? 'selected' : ''; ?>>
-            <?php echo htmlspecialchars($alumno['NOMBRE'] . ' ' . $alumno['AP_PATERNO'] . ' ' . $alumno['AP_MATERNO']); ?>
+            <?php echo htmlspecialchars($alumno['AP_PATERNO'] . ' ' . $alumno['AP_MATERNO'] . ' ' . $alumno['NOMBRE']); ?>
         </option>
     <?php endforeach; ?>
 </select>
@@ -363,7 +363,7 @@ if (isset($_POST['buscarAlumnoNombre'])) {
         <select class="form-control" id="apoderadoSeleccionado" name="apoderadoSeleccionado">
             <?php foreach($listaApoderados as $apoderado): ?>
                 <option value="<?php echo htmlspecialchars($apoderado['ID_APODERADO']); ?>">
-                    <?php echo htmlspecialchars($apoderado['NOMBRE'] . ' ' . $apoderado['AP_PATERNO'] . ' ' . $apoderado['AP_MATERNO']); ?>
+                    <?php echo htmlspecialchars($apoderado['AP_PATERNO'] . ' ' . $apoderado['AP_MATERNO'] . ' ' .  $apoderado['NOMBRE']); ?>
                 </option>
             <?php endforeach; ?>
         </select>
