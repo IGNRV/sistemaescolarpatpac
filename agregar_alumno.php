@@ -1,7 +1,7 @@
 <?php
 // Incluye la conexión a la base de datos
-require_once 'db.php';
-ini_set('display_errors', 1);
+/* require_once 'db.php';
+ini_set('display_errors', 1); */
 
 // Inicia sesión
 
@@ -105,7 +105,7 @@ if (isset($_POST['actualizar'])) {
     $apMaterno = $_POST['ap_materno'];
     $fechaNac = $_POST['fecha_nac'];
     $rutAlumno = $_POST['rut_alumno'];
-    $rda = $_POST['rda'];
+    /* $rda = $_POST['rda']; */
     $calle = $_POST['calle'];
     $nroCalle = $_POST['nro_calle'];
     $obsDireccion = $_POST['obs_direccion'];
@@ -116,8 +116,8 @@ if (isset($_POST['actualizar'])) {
     $fono = $_POST['fono'];
 
     // Prepara la consulta SQL para actualizar el alumno
-    $stmt = $conn->prepare("UPDATE ALUMNO SET NOMBRE = ?, AP_PATERNO = ?, AP_MATERNO = ?, FECHA_NAC = ?, RDA = ?, CALLE = ?, NRO_CALLE = ?, OBS_DIRECCION = ?, VILLA = ?, COMUNA = ?, ID_REGION = ?, MAIL = ?, FONO = ? WHERE RUT_ALUMNO = ?");
-    $stmt->bind_param("ssssssssssssss", $nombre, $apPaterno, $apMaterno, $fechaNac, $rda, $calle, $nroCalle, $obsDireccion, $villa, $comuna, $idRegion, $mail, $fono, $rutAlumno);
+    $stmt = $conn->prepare("UPDATE ALUMNO SET NOMBRE = ?, AP_PATERNO = ?, AP_MATERNO = ?, FECHA_NAC = ?, CALLE = ?, NRO_CALLE = ?, OBS_DIRECCION = ?, VILLA = ?, COMUNA = ?, ID_REGION = ?, MAIL = ?, FONO = ? WHERE RUT_ALUMNO = ?");
+    $stmt->bind_param("sssssssssssss", $nombre, $apPaterno, $apMaterno, $fechaNac, $calle, $nroCalle, $obsDireccion, $villa, $comuna, $idRegion, $mail, $fono, $rutAlumno);
     $stmt->execute();
 
     if ($stmt->affected_rows > 0) {
@@ -170,7 +170,11 @@ if (isset($_POST['agregarAlumno'])) {
     $apMaternoNuevo = strtoupper($_POST['apMaternoNuevo']);
     $fechaNacNuevo = strtoupper($_POST['fechaNacNuevo']);
     $rutAlumnoNuevo = strtoupper($_POST['rutAlumnoNuevo']);
-    $rdaNuevo = strtoupper($_POST['rdaNuevo']);
+    // Si el campo RUT está vacío, genera un hash aleatorio de máximo 10 caracteres
+    if (empty($rutAlumnoNuevo)) {
+        $bytes = random_bytes(5); // 5 bytes generarán 10 caracteres en hexadecimal
+        $rutAlumnoNuevo = bin2hex($bytes);
+    }
     $calleNuevo = strtoupper($_POST['calleNuevo']);
     $nroCalleNuevo = strtoupper($_POST['nroCalleNuevo']);
     $obsDireccionNuevo = strtoupper($_POST['obsDireccionNuevo']);
@@ -221,8 +225,8 @@ if (isset($_POST['agregarAlumno'])) {
     }
 
     // Prepara la consulta SQL para agregar el alumno
-    $stmtNuevo = $conn->prepare("INSERT INTO ALUMNO (NOMBRE, AP_PATERNO, AP_MATERNO, FECHA_NAC, RUT_ALUMNO, RDA, CALLE, NRO_CALLE, OBS_DIRECCION, VILLA, COMUNA, ID_REGION, MAIL, FONO, CURSO, ID_CURSO, ID_COMUNA, FOTO_ALUMNO, FECHA_INGRESO, PERIODO_ESCOLAR, STATUS, DELETE_FLAG) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-    $stmtNuevo->bind_param("ssssssssssssssssssssss", $nombreNuevo, $apPaternoNuevo, $apMaternoNuevo, $fechaNacNuevo, $rutAlumnoNuevo, $rdaNuevo, $calleNuevo, $nroCalleNuevo, $obsDireccionNuevo, $villaNuevo, $comunaSeleccionada, $idRegion, $mailNuevo, $fonoNuevo, $cursoSeleccionado, $idcurso, $idcomuna, $fotoAlumno, $fechaingreso, $periodoescolar, $status, $deleteflag);
+    $stmtNuevo = $conn->prepare("INSERT INTO ALUMNO (NOMBRE, AP_PATERNO, AP_MATERNO, FECHA_NAC, RUT_ALUMNO, CALLE, NRO_CALLE, OBS_DIRECCION, VILLA, COMUNA, ID_REGION, MAIL, FONO, CURSO, ID_CURSO, ID_COMUNA, FOTO_ALUMNO, FECHA_INGRESO, PERIODO_ESCOLAR, STATUS, DELETE_FLAG) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmtNuevo->bind_param("sssssssssssssssssssss", $nombreNuevo, $apPaternoNuevo, $apMaternoNuevo, $fechaNacNuevo, $rutAlumnoNuevo, $calleNuevo, $nroCalleNuevo, $obsDireccionNuevo, $villaNuevo, $comunaSeleccionada, $idRegion, $mailNuevo, $fonoNuevo, $cursoSeleccionado, $idcurso, $idcomuna, $fotoAlumno, $fechaingreso, $periodoescolar, $status, $deleteflag);
     $stmtNuevo->execute();
 
     if ($stmtNuevo->affected_rows > 0) {
@@ -291,12 +295,12 @@ if (isset($_POST['agregarAlumno'])) {
     </div>
     <div class="form-group">
         <label>RUT (Ej: 12345678-9):</label>
-        <input type="text" class="form-control to-uppercase" name="rutAlumnoNuevo" pattern="[0-9\-]{1,10}" maxlength="10" required oninput="this.value = this.value.replace(/[^0-9\-]/g, '').toUpperCase();" title="Solo números y un guion. Máximo 10 caracteres.">
+        <input type="text" class="form-control to-uppercase" name="rutAlumnoNuevo" pattern="[0-9\-]{1,10}" maxlength="10" oninput="this.value = this.value.replace(/[^0-9\-]/g, '').toUpperCase();" title="Solo números y un guion. Máximo 10 caracteres.">
     </div>
-    <div class="form-group">
+    <!-- <div class="form-group">
         <label>RDA:</label>
         <input type="text" class="form-control to-uppercase" name="rdaNuevo">
-    </div>
+    </div> -->
     <div class="form-group">
         <label>Calle:</label>
         <input type="text" class="form-control to-uppercase" name="calleNuevo">

@@ -1,6 +1,6 @@
 <?php
 require_once 'db.php'; // Asegúrate de que este es el camino correcto hacia tu archivo db.php
-ini_set('display_errors', 1);
+/* ini_set('display_errors', 1); */
 $saldoPeriodoAnterior = [];
 $cuotasPeriodoActual = [];
 $mensaje = '';
@@ -123,7 +123,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
 <?php endif; ?>
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-10">
             <div class="card">
                 <div class="card-header">
                     <h2 class="text-center">Mantenedor de BECAS</h2>

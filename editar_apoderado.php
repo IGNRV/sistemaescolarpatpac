@@ -3,9 +3,9 @@
 session_start();
 require_once 'db.php';
 
-ini_set('display_errors', 1);
+/* ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+error_reporting(E_ALL); */
 
 
 if (!isset($_SESSION['EMAIL'])) {
@@ -48,7 +48,13 @@ if (isset($_POST['actualizar_apoderado'])) {
     $fonoPart = $_POST['telefonoParticular'];
     $mailPart = $_POST['correoElectronicoPersonal'];
     $mailLab = $_POST['correoElectronicoTrabajo'];
-    $rut = $_POST['rut'];
+    if (empty($_POST['rut'])) {
+        // Genera un hash aleatorio de 10 caracteres como máximo
+        $rut = substr(md5(uniqid(rand(), true)), 0, 10); // Usar md5 y uniqid para generar un hash y luego cortarlo a 10 caracteres
+    } else {
+        // Si no está vacío, usa el valor de $_POST['rut']
+        $rut = $_POST['rut'];
+    }
     $tutorAcademico = isset($_POST['tutorAcademico']) ? 1 : 0;
     $tutorEconomico = isset($_POST['tutorEconomico']) ? 1 : 0;
     
@@ -84,8 +90,9 @@ if (isset($_POST['actualizar_apoderado'])) {
 
         if ($hayCambios) {
             // Actualiza los datos en la base de datos con el ID_COMUNA e ID_REGION
+        	$fechaNac2 = date("Y-m-d", strtotime($fechaNac));
             $stmtActualizar = $conn->prepare("UPDATE APODERADO SET PARENTESCO = ?, NOMBRE = ?, AP_PATERNO = ?, AP_MATERNO = ?, FECHA_NAC = ?, CALLE = ?, NRO_CALLE = ?, OBS_DIRECCION = ?, VILLA = ?, ID_COMUNA = ?, ID_REGION = ?, FONO_PART = ?, MAIL_PART = ?, MAIL_LAB = ?, TUTOR_ACADEMICO = ?, RUT_APODERADO = ?, TUTOR_ECONOMICO = ? WHERE RUT_APODERADO = ?");
-            $stmtActualizar->bind_param("ssssssssssssssssis", $parentesco, $nombre, $apellidoPaterno, $apellidoMaterno, $fechaNac, $calle, $nCalle, $obsDireccion, $villaPoblacion, $comuna, $idRegion, $fonoPart, $mailPart, $mailLab, $tutorAcademico, $rut, $tutorEconomico, $rutOriginal);
+            $stmtActualizar->bind_param("ssssssssssssssssis", $parentesco, $nombre, $apellidoPaterno, $apellidoMaterno, $fechaNac2, $calle, $nCalle, $obsDireccion, $villaPoblacion, $comuna, $idRegion, $fonoPart, $mailPart, $mailLab, $tutorAcademico, $rut, $tutorEconomico, $rutOriginal);
             $stmtActualizar->execute();
 
             if ($stmtActualizar->affected_rows > 0) {
@@ -113,10 +120,33 @@ if (isset($_POST['actualizar_apoderado'])) {
 
 if ($apoderado != null) {
     // Consulta para obtener todas las comunas
-    $consultaComunas = $conn->query("SELECT ID_COMUNA, ID_REGION, NOM_COMUNA FROM COMUNA");
+    $consultaComunas = $conn->query("SELECT ID_COMUNA, ID_REGION, NOM_COMUNA FROM COMUNA ORDER BY NOM_COMUNA ASC");
     $comunas = $consultaComunas->fetch_all(MYSQLI_ASSOC);
     $fechaNacFormatted = date("d-m-Y", strtotime($apoderado['FECHA_NAC']));
 
+}
+
+function esRutValido($rut) {
+    // Verifica si el RUT termina en "-K"
+    if (preg_match('/-\K$/', $rut)) {
+        return true;
+    }
+    // Verifica si el RUT tiene solo números seguido de un guion y luego un número o una K
+    if (preg_match('/^\d+-[\dkK]$/', $rut)) {
+        return true;
+    }
+    // En cualquier otro caso, devuelve falso
+    return false;
+}
+
+// Lógica para determinar qué valor mostrar en el campo RUT
+$valorRut = "";
+if ($apoderado != null) {
+    if (esRutValido($apoderado['RUT_APODERADO'])) {
+        $valorRut = $apoderado['RUT_APODERADO']; // Muestra el RUT si es válido
+    } else {
+        $valorRut = "-"; // Muestra un guion si el RUT no es válido
+    }
 }
 ?>
 <head>
@@ -146,7 +176,7 @@ if ($apoderado != null) {
 
                             <div class="form-group">
                                 <label for="nombre">RUT</label>
-                                <input type="text" class="form-control" name="rut" value="<?php echo $apoderado['RUT_APODERADO']; ?>">
+                                <input type="text" class="form-control" name="rut" value="<?php echo $valorRut; ?>">
                             </div>
 
                             <div class="form-group">

@@ -1,6 +1,6 @@
 <?php
 require_once 'db.php'; 
-ini_set('display_errors', 1);
+/* ini_set('display_errors', 1); */
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $json = file_get_contents('php://input');
@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             // Si la inserción fue exitosa, actualiza HISTORIAL_PAGOS
             if ($stmt->affected_rows > 0) {
-                $updateStmt = $conn->prepare("UPDATE HISTORIAL_PAGOS SET ESTADO_PAGO = 2 WHERE ID_PAGO = ?");
+                $updateStmt = $conn->prepare("UPDATE HISTORIAL_PAGOS SET ESTADO_PAGO = 3 WHERE ID_PAGO = ?");
                 $updateStmt->bind_param("i", $pago->idPago);
                 $updateStmt->execute();
             }

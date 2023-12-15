@@ -8,6 +8,12 @@ if (!isset($_SESSION['EMAIL'])) {
 // Conexión a la base de datos
 require_once 'db.php';
 
+// Consulta para obtener los nombres de los alumnos junto con sus IDs
+$consultaAlumnos = "SELECT ID_ALUMNO, NOMBRE, AP_PATERNO, AP_MATERNO FROM ALUMNO";
+$resultadoAlumnos = $conn->query($consultaAlumnos);
+$alumnos = $resultadoAlumnos->fetch_all(MYSQLI_ASSOC);
+
+
 // Obtener el id_usuario del usuario que ha iniciado sesión
 $EMAIL = $_SESSION['EMAIL'];
 $queryUsuario = "SELECT ID FROM USERS WHERE EMAIL = '$EMAIL'";
@@ -122,6 +128,8 @@ if (isset($_POST['actualizar_datos'])) {
     $resultadoRegion = $consultaRegion->get_result();
     $filaRegion = $resultadoRegion->fetch_assoc();
     $idRegionCorrespondiente = $filaRegion['ID_REGION'];
+    $idAlumno = $_POST['idAlumnoHidden'] ?? '';
+
     
 
     if (!empty($rutAlumno)) {
@@ -207,16 +215,50 @@ if (isset($_POST['asignarApoderado'])) {
     }
 }
 
-// ...
-
-
-
 // Verifica si existe un mensaje de éxito en la variable de sesión
 if (isset($_SESSION['mensaje_exito'])) {
     $mensaje = $_SESSION['mensaje_exito'];
     // Una vez mostrado el mensaje, elimina la variable de sesión
     unset($_SESSION['mensaje_exito']);
 }
+
+$idAlumnoSeleccionado = '';
+if (isset($_POST['buscarAlumnoNombre'])) {
+    $idAlumnoSeleccionado = $_POST['nombreAlumno'];
+
+    // Consulta a la base de datos para obtener información basada en ID_ALUMNO
+    $stmt = $conn->prepare("SELECT 
+                                a.ID_ALUMNO,
+                                a.RUT_ALUMNO,
+                                ap.RUT_APODERADO,
+                                ap.NOMBRE,
+                                ap.AP_PATERNO,
+                                ap.AP_MATERNO,
+                                ap.PARENTESCO,
+                                ap.MAIL_PART,
+                                ap.FONO_PART,
+                                raa.DELETE_FLAG
+                            FROM
+                                ALUMNO AS a
+                                    LEFT JOIN
+                                REL_ALUM_APOD AS raa ON raa.ID_ALUMNO = a.ID_ALUMNO
+                                    LEFT JOIN
+                                APODERADO AS ap ON ap.ID_APODERADO = raa.ID_APODERADO
+                            WHERE
+                                a.ID_ALUMNO = ? AND raa.DELETE_FLAG = 0");
+    $stmt->bind_param("i", $idAlumnoSeleccionado);
+    $stmt->execute();
+    $resultado = $stmt->get_result();
+
+    if ($resultado->num_rows > 0) {
+        $mensaje = "Datos del alumno encontrados.";
+        $apoderados = $resultado->fetch_all(MYSQLI_ASSOC);
+    } else {
+        $mensaje = "No se encontró ningún alumno con ese ID.";
+    }
+    $stmt->close();
+}
+
 ?>
 
 
@@ -243,7 +285,27 @@ if (isset($_SESSION['mensaje_exito'])) {
 <tbody>
     <?php foreach ($apoderados as $apoderado): ?>
         <tr>
-            <td><?php echo htmlspecialchars($apoderado['RUT_APODERADO']); ?></td>
+        <td>
+            <?php 
+            // Verifica si RUT_APODERADO termina en "-K" o si tiene formato de RUT chileno
+            if (preg_match('/^(\d{1,8}-[0-9kK])$/', $apoderado['RUT_APODERADO'])) {
+                // Si es un RUT válido o termina en "-K", se muestra tal cual
+                echo htmlspecialchars($apoderado['RUT_APODERADO']);
+            } elseif (preg_match('/[a-zA-Z]/', $apoderado['RUT_APODERADO'])) {
+                // Si contiene letras (excepto si termina en "-K"), se muestra un guion (-)
+                echo '-';
+            } else {
+                // En otro caso, se verifica si parece ser un hash y no un RUT
+                if (strlen($apoderado['RUT_APODERADO']) > 10 || preg_match('/[a-f0-9]{10,}/i', $apoderado['RUT_APODERADO'])) {
+                    // Parece un hash, muestra un guion (-)
+                    echo '-';
+                } else {
+                    // No parece un hash y no es un RUT válido, muestra un guion (-)
+                    echo '-';
+                }
+            }
+            ?>
+        </td>
             <td><?php echo htmlspecialchars($apoderado['NOMBRE']) . " " . htmlspecialchars($apoderado['AP_PATERNO']) . " " . htmlspecialchars($apoderado['AP_MATERNO']); ?></td>
             <td><?php echo htmlspecialchars($apoderado['PARENTESCO']); ?></td>
             <td><?php echo htmlspecialchars($apoderado['MAIL_PART']); ?></td>
@@ -272,6 +334,25 @@ if (isset($_SESSION['mensaje_exito'])) {
             <button type="submit" class="btn btn-primary custom-button mt-3" name="buscarAlumno">Buscar</button>
         </div>
     </form>
+
+    <!-- Añadir el nuevo select aquí -->
+    <form method="post">
+    <div class="form-group">
+        <label for="nombreAlumno">Nombre del alumno:</label>
+        <select class="form-control" id="nombreAlumno" name="nombreAlumno">
+    <?php foreach ($alumnos as $alumno): ?>
+        <option value="<?php echo htmlspecialchars($alumno['ID_ALUMNO']); ?>"
+            <?php echo ($alumno['ID_ALUMNO'] == $idAlumnoSeleccionado) ? 'selected' : ''; ?>>
+            <?php echo htmlspecialchars($alumno['NOMBRE'] . ' ' . $alumno['AP_PATERNO'] . ' ' . $alumno['AP_MATERNO']); ?>
+        </option>
+    <?php endforeach; ?>
+</select>
+        <input type="hidden" name="idAlumnoHidden" id="idAlumnoHidden" value="">
+
+    </div>
+    <button type="submit" class="btn btn-primary" name="buscarAlumnoNombre">Buscar por Nombre</button>
+</form>
+
 
     <h3>Seleccionar Apoderado</h3>
     <form method="post">
@@ -316,7 +397,7 @@ if (isset($_SESSION['mensaje_exito'])) {
         </div>
         <div class="form-group">
             <label>Fecha de Nacimiento:</label>
-            <input type="text" class="form-control" name="fecha_nac">
+            <input type="date" class="form-control" name="fecha_nac">
         </div>
         <div class="form-group">
             <label for="calle">Calle</label>
@@ -371,3 +452,16 @@ if (isset($_SESSION['mensaje_exito'])) {
         <button type="submit" class="btn btn-primary btn-block custom-button" name="actualizar_datos">AGREGAR APODERADO</button>
 </form>
 </div>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var selectAlumno = document.getElementById('nombreAlumno');
+        var inputIdAlumno = document.getElementById('idAlumnoHidden');
+
+        // Establecer el valor inicial del input oculto
+        inputIdAlumno.value = selectAlumno.value;
+
+        selectAlumno.addEventListener('change', function() {
+            inputIdAlumno.value = selectAlumno.value;
+        });
+    });
+</script>

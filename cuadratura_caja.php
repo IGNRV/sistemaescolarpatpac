@@ -1,6 +1,6 @@
 
 <?php
-ini_set('display_errors', 1);
+/* ini_set('display_errors', 1); */
 
 ?>
 <!DOCTYPE html>
@@ -12,21 +12,24 @@ ini_set('display_errors', 1);
     <!-- Agrega los enlaces a los estilos de Bootstrap -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <style>
-        /* Estilo personalizado para el tamaño de letra del título */
+        /* Estilos existentes */
         .custom-title {
             font-size: 1.5em;
         }
-
-        /* Estilo personalizado para hacer la tabla responsiva */
         .table-responsive {
             overflow-x: auto;
         }
-
-        /* Estilo personalizado para ajustar el ancho del contenedor */
         .custom-container {
-            max-width: 600px; /* Ajusta el ancho según tus preferencias */
+            max-width: 600px; /* Ancho para dispositivos móviles y tabletas */
             margin: auto;
-            margin-top: 20px; /* Ajusta el margen superior según tus preferencias */
+            margin-top: 20px;
+        }
+
+        /* Media query para pantallas grandes (por ejemplo, más de 1200px) */
+        @media (min-width: 1200px) {
+            .custom-container {
+                max-width: 1100px; /* Ancho más grande para pantallas de escritorio */
+            }
         }
     </style>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>

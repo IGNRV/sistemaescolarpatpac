@@ -1,6 +1,6 @@
 <?php
 require_once 'db.php'; // Asegúrate de que este es el camino correcto hacia tu archivo db.php
-ini_set('display_errors', 1);
+/* ini_set('display_errors', 1); */
 $saldoPeriodoAnterior = [];
 $cuotasPeriodoActual = [];
 $mensaje = '';
@@ -107,7 +107,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
 <?php endif; ?>
 <div class="container mt-5">
     <div class="row justify-content-center">
-        <div class="col-md-6">
+        <div class="col-md-10">
             <div class="card">
                 <div class="card-header">
                     <h2 class="text-center">Pago de cheques anual</h2>
@@ -187,6 +187,8 @@ if (isset($_SESSION['pagoRegistrado'])) {
                             VENCIDA
                         <?php elseif ($pago['ESTADO_PAGO'] == 2): ?>
                             PAGADA
+                        <?php elseif ($pago['ESTADO_PAGO'] == 3): ?>
+                            DOCUMENTADA
                         <?php endif; ?>
                     </td>
                     <td>
@@ -255,6 +257,8 @@ if (isset($_SESSION['pagoRegistrado'])) {
                             VENCIDA
                         <?php elseif ($pago['ESTADO_PAGO'] == 2): ?>
                             PAGADA
+                        <?php elseif ($pago['ESTADO_PAGO'] == 3): ?>
+                            DOCUMENTADA
                         <?php endif; ?>
                     </td>
                     <td>
@@ -608,7 +612,7 @@ document.addEventListener('DOMContentLoaded', function() {
             ano: new Date().getFullYear(),
             fechaPago: new Date().toISOString().split('T')[0],
             medioDePago: 'CHEQUE',
-            estado: 1,
+            estado: 3,
             tipoDocumento: 'CHEQUE',
             nCuotas: 1
         });

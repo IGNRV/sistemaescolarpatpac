@@ -1,9 +1,10 @@
 <?php
 // Incluye la conexión a la base de datos
 require_once 'db.php';
-ini_set('display_errors', 1);
+/* ini_set('display_errors', 1); */
 
 // Inicia sesión
+$actualizacionExitosa = isset($_POST['actualizar']) && !empty($mensaje);
 
 // Define una variable para el mensaje
 $mensaje = '';
@@ -21,6 +22,21 @@ if ($resultadoCursos->num_rows > 0) {
     }
 }
 $stmtCursos->close();
+
+
+// Consulta para obtener los nombres completos de los alumnos
+$alumnosNombres = [];
+$stmtAlumnos = $conn->prepare("SELECT ID_ALUMNO, CONCAT(NOMBRE, ' ', AP_PATERNO, ' ', AP_MATERNO) AS NOMBRE_COMPLETO FROM ALUMNO");
+$stmtAlumnos->execute();
+$resultadoAlumnos = $stmtAlumnos->get_result();
+
+if ($resultadoAlumnos->num_rows > 0) {
+    while ($filaAlumno = $resultadoAlumnos->fetch_assoc()) {
+        $alumnosNombres[$filaAlumno['ID_ALUMNO']] = $filaAlumno['NOMBRE_COMPLETO'];
+    }
+}
+$stmtAlumnos->close();
+
 
 // Consulta para obtener las comunas
 $comunas = [];
@@ -130,6 +146,11 @@ if (isset($_POST['actualizar'])) {
     $cursoSeleccionado = $_POST['curso'];
     $mail = $_POST['mail'];
     $fono = $_POST['fono'];
+    $rutAlumnoHidden = $_POST['rutAlumnoHidden']; // Usar el valor del campo oculto
+
+    if (empty($rutAlumno)) {
+        $rutAlumno = bin2hex(random_bytes(5)); // 5 bytes = 10 caracteres hexadecimales
+    }
 
     // Obtén el ID_COMUNA e ID_REGION basados en la comuna seleccionada
     $stmtComuna = $conn->prepare("SELECT ID_COMUNA, ID_REGION FROM COMUNA WHERE NOM_COMUNA = ?");
@@ -154,12 +175,15 @@ if (isset($_POST['actualizar'])) {
     $stmtCurso->close();
 
     // Prepara la consulta SQL para actualizar el alumno
-    $stmtActualizar = $conn->prepare("UPDATE ALUMNO SET NOMBRE = ?, AP_PATERNO = ?, AP_MATERNO = ?, FECHA_NAC = ?, RDA = ?, CALLE = ?, NRO_CALLE = ?, OBS_DIRECCION = ?, VILLA = ?, COMUNA = ?, ID_REGION = ?, ID_COMUNA = ?, ID_CURSO = ?, MAIL = ?, FONO = ? WHERE RUT_ALUMNO = ?");
-    $stmtActualizar->bind_param("ssssssssssssssss", $nombre, $apPaterno, $apMaterno, $fechaNac, $rda, $calle, $nroCalle, $obsDireccion, $villa, $comunaSeleccionada, $idRegion, $idcomuna, $idcurso, $mail, $fono, $rutAlumno);
+    $stmtActualizar = $conn->prepare("UPDATE ALUMNO SET NOMBRE = ?, RUT_ALUMNO = ?, AP_PATERNO = ?, AP_MATERNO = ?, FECHA_NAC = ?, RDA = ?, CALLE = ?, NRO_CALLE = ?, OBS_DIRECCION = ?, VILLA = ?, COMUNA = ?, ID_REGION = ?, ID_COMUNA = ?, ID_CURSO = ?, MAIL = ?, FONO = ? WHERE RUT_ALUMNO = ?");
+    $stmtActualizar->bind_param("sssssssssssssssss", $nombre, $rutAlumno, $apPaterno, $apMaterno, $fechaNac, $rda, $calle, $nroCalle, $obsDireccion, $villa, $comunaSeleccionada, $idRegion, $idcomuna, $idcurso, $mail, $fono, $rutAlumnoHidden);
     $stmtActualizar->execute();
 
+    // Verificar si hubo actualizaciones y mostrar mensaje correspondiente
     if ($stmtActualizar->affected_rows > 0) {
         $mensaje = "Datos del alumno actualizados con éxito.";
+        $rutAlumno = ''; // Limpia la variable después de una actualización exitosa
+
     } else {
         $mensaje = "No se pudo actualizar los datos del alumno.";
     }
@@ -293,6 +317,86 @@ if (isset($_POST['eliminar_observacion'])) {
     // Aquí deberías recargar la variable $observaciones con los datos actualizados de la base de datos
 }
 
+// Función para verificar si el RUT es válido o si es un hash aleatorio
+function mostrarRut($rut) {
+    if (preg_match('/^\d{7,8}-[0-9kK]$/', $rut)) {
+        // Es un RUT válido con números y un guión antes del dígito verificador
+        return $rut;
+    } elseif (preg_match('/^\d{7,8}K$/', $rut)) {
+        // Es un RUT válido que termina en 'K'
+        return substr($rut, 0, -1) . '-K';
+    } else {
+        // No es un RUT válido o es un hash aleatorio, mostrar guión
+        return '-';
+    }
+}
+
+// Usar la función mostrarRut para decidir qué valor mostrar en el input del RUT
+$valorRutAlumno = mostrarRut($alumno['RUT_ALUMNO'] ?? '');
+
+// Verifica si se ha enviado el formulario de búsqueda por nombre
+if (isset($_POST['buscarAlumnoNombre'])) {
+    $idAlumno = $_POST['nombreCompletoAlumno'];
+    $stmt = $conn->prepare("SELECT * FROM ALUMNO WHERE ID_ALUMNO = ?");
+    $stmt->bind_param("i", $idAlumno);
+    $stmt->execute();
+    $resultado = $stmt->get_result();
+
+    if ($resultado->num_rows > 0) {
+        $mensaje = "Alumno encontrado.";
+        $alumno = $resultado->fetch_assoc();
+        
+        // Actualiza la variable $rutAlumno con el RUT del alumno
+        $rutAlumno = $alumno['RUT_ALUMNO'];
+        // Usa la función mostrarRut() para formatear correctamente el RUT
+        $valorRutAlumno = mostrarRut($rutAlumno); 
+        // Configura las variables con los datos del alumno encontrado
+        $rutAlumno = $alumno['RUT_ALUMNO']; // Por ejemplo, la variable $rutAlumno se actualiza con el RUT del alumno
+        $estadoAlumno = ($alumno['STATUS'] == 1) ? 'ACTIVADO' : 'INACTIVO';
+        
+        // Busca la comuna actual del alumno
+        $stmtComunaAlumno = $conn->prepare("SELECT NOM_COMUNA FROM COMUNA WHERE ID_COMUNA = ?");
+        $stmtComunaAlumno->bind_param("i", $alumno['ID_COMUNA']);
+        $stmtComunaAlumno->execute();
+        $resultadoComunaAlumno = $stmtComunaAlumno->get_result();
+        if ($resultadoComunaAlumno->num_rows > 0) {
+            $comunaAlumno = $resultadoComunaAlumno->fetch_assoc()['NOM_COMUNA'];
+        }
+        $stmtComunaAlumno->close();
+
+        // Busca el curso actual del alumno
+        $stmtCursoAlumno = $conn->prepare("SELECT NOMBRE_CURSO FROM CURSOS WHERE ID_CURSO = ?");
+        $stmtCursoAlumno->bind_param("i", $alumno['ID_CURSO']);
+        $stmtCursoAlumno->execute();
+        $resultadoCursoAlumno = $stmtCursoAlumno->get_result();
+        if ($resultadoCursoAlumno->num_rows > 0) {
+            $cursoAlumno = $resultadoCursoAlumno->fetch_assoc()['NOMBRE_CURSO'];
+        }
+        $stmtCursoAlumno->close();
+        
+        // Carga de observaciones, si las necesitas
+        $observaciones = [];
+        $stmtObs = $conn->prepare("SELECT * FROM OBSERVACIONES WHERE RUT_ALUMNO = ? AND DELETE_FLAG = 0");
+        $stmtObs->bind_param("s", $rutAlumno);
+        $stmtObs->execute();
+        $resultadoObs = $stmtObs->get_result();
+        if ($resultadoObs->num_rows > 0) {
+            while ($filaObs = $resultadoObs->fetch_assoc()) {
+                $observaciones[] = $filaObs;
+            }
+        }
+        $stmtObs->close();
+        
+        // Resto del código para configurar variables para el formulario...
+
+    } else {
+        $mensaje = "Alumno no encontrado.";
+        $valorRutAlumno = '-'; 
+    }
+    $stmt->close();
+}
+
+
 
 ?>
 <?php if (!empty($mensaje)): ?>
@@ -309,12 +413,24 @@ if (isset($_POST['eliminar_observacion'])) {
     </div>
 </form>
 
+<form action="" method="post">
+<div class="form-group">
+    <label for="nombreCompletoAlumno">Nombre del alumno:</label>
+    <select class="form-control" id="nombreCompletoAlumno" name="nombreCompletoAlumno">
+        <?php foreach ($alumnosNombres as $idAlumno => $nombreCompleto): ?>
+            <option value="<?php echo $idAlumno; ?>"><?php echo htmlspecialchars($nombreCompleto); ?></option>
+        <?php endforeach; ?>
+    </select>
+    <button type="submit" class="btn btn-primary custom-button mt-3" name="buscarAlumnoNombre">Buscar por Nombre</button>
+</div>
+</form>
+
 
 <h1 class="text-center">Datos del alumno</h1>
             <!-- Formulario de datos del alumno -->
             <form action="" method="post">
                 <input type="hidden" name="rut" value="<?php echo $rut; ?>">
-                <input type="hidden" name="rutAlumno" value="<?php echo htmlspecialchars($rutAlumno); ?>">
+                <input type="hidden" name="rutAlumnoHidden" value="<?php echo htmlspecialchars($rutAlumno); ?>">
 
                 <div class="form-group">
         <label>Estado:</label>
@@ -339,13 +455,13 @@ if (isset($_POST['eliminar_observacion'])) {
                 </div>
                 <div class="form-group">
                     <label>Fecha de Nacimiento:</label>
-                    <input type="text" class="form-control" name="fecha_nac" value="<?php echo isset($alumno['FECHA_NAC']) ? $alumno['FECHA_NAC'] : ''; ?>">
+                    <input type="date" class="form-control" name="fecha_nac" value="<?php echo isset($alumno['FECHA_NAC']) ? $alumno['FECHA_NAC'] : ''; ?>">
                 </div>
                 <div class="form-group">
                     <label>RUT:</label>
-                    <input type="text" class="form-control" name="rut_alumno" value="<?php echo isset($alumno['RUT_ALUMNO']) ? $alumno['RUT_ALUMNO'] : ''; ?>">
+                    <input type="text" class="form-control" name="rut_alumno" value="<?php echo $valorRutAlumno; ?>">
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="display:none;">
                     <label>RDA:</label>
                     <input type="text" class="form-control to-uppercase" name="rda" value="<?php echo isset($alumno['RDA']) ? $alumno['RDA'] : ''; ?>">
                 </div>
@@ -457,7 +573,13 @@ if (isset($_POST['eliminar_observacion'])) {
             });
         });
     });
-/* function confirmDelete() {
-    return confirm("¿Estás seguro de que quieres eliminar esta observación?");
-} */
+
+        // Aquí agregas el script para limpiar los campos después de la actualización
+        <?php if ($actualizacionExitosa): ?>
+            // Restablece los campos del formulario
+            document.forms[0].reset();
+            // Aquí, document.forms[0] se refiere al primer formulario en tu página.
+            // Asegúrate de que este índice corresponda al formulario que deseas restablecer.
+        <?php endif; ?>
+    });
 </script>

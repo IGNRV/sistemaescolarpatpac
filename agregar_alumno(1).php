@@ -1,7 +1,7 @@
 <?php
 // Incluye la conexión a la base de datos
-require_once 'db.php';
-ini_set('display_errors', 1);
+/* require_once 'db.php';
+ini_set('display_errors', 1); */
 
 // Inicia sesión
 
