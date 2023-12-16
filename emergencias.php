@@ -33,6 +33,16 @@ function buscarDatos($conn, $rutAlumno) {
     return $resultado;
 }
 
+// Función para buscar los datos del alumno y su contacto de emergencia
+function buscarDatosPorNombre($conn, $idAlumno) {
+    $stmt = $conn->prepare("SELECT ce.ID_CONTACTO, ce.RUT_APODERADO, a.RUT_ALUMNO, ce.ID_ALUMNO, ce.PARENTESCO, ce.NOMBRE, ce.AP_PATERNO, ce.AP_MATERNO, ce.MAIL_EMERGENCIA, ce.FONO_EMERGENCIA, ce.FECHA_INGRESO, ce.PERIODO_ESCOLAR, ce.STATUS, ce.DELETE_FLAG, ce.DATE_CREATED, ce.DATE_UPDATED FROM ALUMNO AS a LEFT JOIN CONTACTO_EMERGENCIA AS ce ON ce.ID_ALUMNO = a.ID_ALUMNO WHERE a.ID_ALUMNO = ?");
+    $stmt->bind_param("s", $idAlumno);
+    $stmt->execute();
+    $resultado = $stmt->get_result();
+    $stmt->close();
+    return $resultado;
+}
+
 function buscarAntecedentes($conn, $rutAlumno) {
     $stmt = $conn->prepare("SELECT ID_ANTECEDENTE, TIPO_ANTECEDENTE, DESCRIPCION_ANTECEDENTE, FECHA_INGRESO FROM ANTECEDENTES_EMERGENCIA WHERE RUT_ALUMNO = ? AND DELETE_FLAG = 0");
     $stmt->bind_param("s", $rutAlumno);
@@ -48,6 +58,26 @@ if (isset($_POST['buscarAlumno'])) {
     if ($resultadoBusqueda->num_rows > 0) {
         $contactoEmergencia = $resultadoBusqueda->fetch_assoc();
         $mensaje = "Alumno y contacto de emergencia encontrados.";
+        // Buscar antecedentes médicos del alumno encontrado
+        $resultadoAntecedentes = buscarAntecedentes($conn, $contactoEmergencia['RUT_ALUMNO']);
+    } else {
+        $mensaje = "Alumno no encontrado.";
+        $resultadoAntecedentes = null;
+    }
+}
+
+// Procesar el formulario de búsqueda
+if (isset($_POST['buscarAlumnoNombre'])) {
+    // Asegúrate de capturar el valor del ID del alumno seleccionado
+    $idAlumnoSeleccionado = $_POST['nombreCompletoAlumno'];
+
+    // Llama a la función buscarDatosPorNombre con el ID del alumno seleccionado
+    $resultadoBusqueda = buscarDatosPorNombre($conn, $idAlumnoSeleccionado);
+
+    if ($resultadoBusqueda->num_rows > 0) {
+        $contactoEmergencia = $resultadoBusqueda->fetch_assoc();
+        $mensaje = "Alumno y contacto de emergencia encontrados.";
+
         // Buscar antecedentes médicos del alumno encontrado
         $resultadoAntecedentes = buscarAntecedentes($conn, $contactoEmergencia['RUT_ALUMNO']);
     } else {
@@ -135,6 +165,19 @@ if (isset($_POST['actualizar_contacto'])) {
 }
 $rutAlumno = isset($_POST['rutAlumno']) ? $_POST['rutAlumno'] : '';
 
+// Consulta para obtener los nombres completos de los alumnos
+$alumnosNombres = [];
+$stmtAlumnos = $conn->prepare("SELECT ID_ALUMNO, CONCAT(NOMBRE, ' ', AP_PATERNO, ' ', AP_MATERNO) AS NOMBRE_COMPLETO FROM ALUMNO");
+$stmtAlumnos->execute();
+$resultadoAlumnos = $stmtAlumnos->get_result();
+
+if ($resultadoAlumnos->num_rows > 0) {
+    while ($filaAlumno = $resultadoAlumnos->fetch_assoc()) {
+        $alumnosNombres[$filaAlumno['ID_ALUMNO']] = $filaAlumno['NOMBRE_COMPLETO'];
+    }
+}
+$stmtAlumnos->close();
+
 ?>
 <?php if (!empty($mensaje)): ?>
         <div class="alert alert-success" role="alert">
@@ -143,6 +186,17 @@ $rutAlumno = isset($_POST['rutAlumno']) ? $_POST['rutAlumno'] : '';
     <?php endif; ?>
 <div class="emergency-contact">
     <h1>Contacto de emergencia</h1>
+    <form action="" method="post">
+        <div class="form-group">
+            <label for="nombreCompletoAlumno">Nombre del alumno:</label>
+            <select class="form-control" id="nombreCompletoAlumno" name="nombreCompletoAlumno">
+                <?php foreach ($alumnosNombres as $idAlumno => $nombreCompleto): ?>
+                    <option value="<?php echo $idAlumno; ?>"><?php echo htmlspecialchars($nombreCompleto); ?></option>
+                <?php endforeach; ?>
+            </select>
+            <button type="submit" class="btn btn-primary custom-button mt-3" name="buscarAlumnoNombre">Buscar por Nombre</button>
+        </div>
+    </form>
     <form method="post">
         <div class="form-group">
             <label for="rutAlumno">Rut del alumno:</label>
@@ -256,6 +310,7 @@ $rutAlumno = isset($_POST['rutAlumno']) ? $_POST['rutAlumno'] : '';
         <!-- Tabla de antecedentes médicos -->
     </div>
 </div>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
         var inputs = document.querySelectorAll('.to-uppercase');
