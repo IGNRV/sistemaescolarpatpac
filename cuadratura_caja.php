@@ -312,7 +312,7 @@ document.getElementById('btnGenerarReporte').addEventListener('click', function(
         var totalElement = document.getElementById(totalId);
 
         // Verificar si la tabla tiene datos (filas) antes de agregarla al PDF
-        if (tabla && tabla.rows.length > 1) { // Asegurarse de que hay más de una fila (la fila de encabezado)
+        if (tabla && tabla.rows.length > 0) { // Asegurarse de que hay más de una fila (la fila de encabezado)
             doc.setFontSize(14);
             finalY += 7; // Espacio antes de cada sección
             doc.text('Pago con ' + seccion, 14, finalY);

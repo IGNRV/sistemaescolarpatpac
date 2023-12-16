@@ -172,6 +172,8 @@ if (isset($_SESSION['pagoRegistrado'])) {
     </thead>
         <tbody>
             <?php foreach ($saldoPeriodoAnterior as $index => $pago): ?>
+                <?php if (in_array($pago['ESTADO_PAGO'], [0, 1])): ?>
+
                 <tr>
                     <td><?php echo $index + 1; ?></td>
                     <td><?php echo htmlspecialchars($pago['FECHA_VENCIMIENTO']); ?></td>
@@ -220,6 +222,8 @@ if (isset($_SESSION['pagoRegistrado'])) {
                         <?php endif; ?>
                     </td>
                 </tr>
+                <?php endif; ?>
+
             <?php endforeach; ?>
         </tbody>
     </table>
@@ -248,6 +252,8 @@ if (isset($_SESSION['pagoRegistrado'])) {
     </thead>
         <tbody>
             <?php foreach ($cuotasPeriodoActual as $index => $pago): ?>
+                <?php if (in_array($pago['ESTADO_PAGO'], [0, 1])): ?>
+
                 <tr>
                     <td><?php echo $index + 1; ?></td>
                     <td><?php echo htmlspecialchars($pago['FECHA_VENCIMIENTO']); ?></td>
@@ -296,6 +302,8 @@ if (isset($_SESSION['pagoRegistrado'])) {
                         <?php endif; ?>
                     </td>
                 </tr>
+                <?php endif; ?>
+
             <?php endforeach; ?>
         </tbody>
     </table>
