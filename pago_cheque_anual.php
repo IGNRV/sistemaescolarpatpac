@@ -537,7 +537,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         var banco = fila.querySelector('[name="bancoCheque[]"]').value;
         var nDocumento = fila.querySelector('[name="nDocumentoCheque[]"]').value;
-        var monto = fila.querySelector('[name="montoCheque[]"]').value;
+        var monto = parseFloat(fila.querySelector('[name="montoCheque[]"]').value); // Obtener el valor del monto
         var fechaEmision = fila.querySelector('[name="fechaEmisionCheque[]"]').value;
         var fechaDeposito = fila.querySelector('[name="fechaDepositoCheque[]"]').value;
 
@@ -549,6 +549,7 @@ document.addEventListener('DOMContentLoaded', function() {
             banco: banco,
             nDocumento: nDocumento,
             monto: monto,
+            valorPagado: monto, // Agregar el monto a los datos del pago
             fechaEmision: fechaEmision,
             fechaDeposito: fechaDeposito,
             fechaCobro: fechaCobro.toISOString().split('T')[0],
