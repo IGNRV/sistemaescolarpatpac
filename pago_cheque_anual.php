@@ -46,7 +46,8 @@ if (isset($_POST['btnBuscarAlumno'])) {
     hp.FECHA_EMISION,
     hp.FECHA_COBRO,
     hp.ID_PERIODO_ESCOLAR,
-    hp.CODIGO_PRODUCTO
+    hp.CODIGO_PRODUCTO,
+    hp.VALOR_PAGADO
 FROM
     c1occsyspay.HISTORIAL_PAGOS AS hp
         LEFT JOIN
@@ -163,6 +164,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
             <th>Fecha Emisión Cheque</th>
             <th>Fecha Depósito Cheque</th>
             <th>N° Cta Corriente</th>
+            <th>Valor Pagado</th>
             <th>Estado Cuota</th>
             <th>Seleccione Valor a Pagar</th>
 
@@ -198,6 +200,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
             <td>
                 <input type="number" class="form-control numeroCtaCte" name="nCtaCteCopia[]" value="" readonly>
             </td>
+            <td><?php echo htmlspecialchars($pago['VALOR_PAGADO']); ?></td> 
                     <td>
                         <?php if ($pago['ESTADO_PAGO'] == 0): ?>
                             VIGENTE
@@ -237,7 +240,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
             <th>Fecha Emisión Cheque</th>
             <th>Fecha Depósito Cheque</th>
             <th>N° Cta Corriente</th>
-
+            <th>Valor Pagado</th>
             <th>Estado Cuota</th>
             <th>Seleccione Valor a Pagar</th>
 
@@ -273,6 +276,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
             <td>
                 <input type="number" class="form-control numeroCtaCte" name="nCtaCteCopia[]" value="" readonly>
             </td>
+            <td><?php echo htmlspecialchars($pago['VALOR_PAGADO']); ?></td> 
                     <td>
                         <?php if ($pago['ESTADO_PAGO'] == 0): ?>
                             VIGENTE
