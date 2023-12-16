@@ -527,71 +527,82 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('btnRegistrarPago').addEventListener('click', function() {
-    var pagosSeleccionados = document.querySelectorAll('.seleccionarPago:checked');
-    var pagos = [];
-    var datosParaPDF = []; // Array para almacenar los datos que irán en el PDF
+            // Calcular el total de los montos de los cheques
+            var totalMontoCheques = 0;
+            document.querySelectorAll('[name="montoCheque[]"]').forEach(function(input) {
+                totalMontoCheques += parseFloat(input.value) || 0;
+            });
 
-    pagosSeleccionados.forEach(function(checkbox, index) {
-        var idPago = checkbox.getAttribute('data-id-pago');
-        var fila = checkbox.closest('tr'); // Encuentra la fila del checkbox
+            // Obtener el total a pagar desde el elemento del DOM
+            var totalAPagar = parseFloat(document.getElementById('totalAPagar').textContent.replace('Total a Pagar $', '')) || 0;
 
-        var banco = fila.querySelector('[name="bancoCheque[]"]').value;
-        var nDocumento = fila.querySelector('[name="nDocumentoCheque[]"]').value;
-        var monto = parseFloat(fila.querySelector('[name="montoCheque[]"]').value); // Obtener el valor del monto
-        var fechaEmision = fila.querySelector('[name="fechaEmisionCheque[]"]').value;
-        /* var fechaDeposito = fila.querySelector('[name="fechaDepositoCheque[]"]').value; */
-        var numeroCtaCte = fila.querySelector('.numeroCtaCte').value; // Captura el valor del número de cuenta corriente
+            // Verificar si los totales coinciden
+            if (totalMontoCheques !== totalAPagar) {
+                alert('El total de los montos de los cheques no coincide con el total a pagar.');
+                return; // Detener el proceso si no coinciden
+            }
 
+            // Proceso de registro de pagos
+            var pagosSeleccionados = document.querySelectorAll('.seleccionarPago:checked');
+            var pagos = [];
+            var datosParaPDF = []; // Array para almacenar los datos que irán en el PDF
 
-        var fechaCobro = new Date(fechaEmision);
-        fechaCobro.setDate(fechaCobro.getDate() + 1);
+            pagosSeleccionados.forEach(function(checkbox, index) {
+                var idPago = checkbox.getAttribute('data-id-pago');
+                var fila = checkbox.closest('tr'); // Encuentra la fila del checkbox
 
-        pagos.push({
-            idPago: idPago,
-            banco: banco,
-            nDocumento: nDocumento,
-            monto: monto,
-            valorPagado: monto, // Agregar el monto a los datos del pago
-            fechaEmision: fechaEmision,
-            /* fechaDeposito: fechaDeposito, */
-            fechaCobro: fechaCobro.toISOString().split('T')[0],
-            ano: new Date().getFullYear(),
-            fechaPago: new Date().toISOString().split('T')[0],
-            medioDePago: 'CHEQUE',
-            estado: 3,
-            tipoDocumento: 'CHEQUE',
-            nCuentaCorriente: numeroCtaCte, // Agrega el número de cuenta corriente a los datos del pago
+                var banco = fila.querySelector('[name="bancoCheque[]"]').value;
+                var nDocumento = fila.querySelector('[name="nDocumentoCheque[]"]').value;
+                var monto = parseFloat(fila.querySelector('[name="montoCheque[]"]').value); // Obtener el valor del monto
+                var fechaEmision = fila.querySelector('[name="fechaEmisionCheque[]"]').value;
+                var numeroCtaCte = fila.querySelector('.numeroCtaCte').value; // Captura el valor del número de cuenta corriente
 
-            nCuotas: 1
+                var fechaCobro = new Date(fechaEmision);
+                fechaCobro.setDate(fechaCobro.getDate() + 1);
+
+                pagos.push({
+                    idPago: idPago,
+                    banco: banco,
+                    nDocumento: nDocumento,
+                    monto: monto,
+                    valorPagado: monto, // Agregar el monto a los datos del pago
+                    fechaEmision: fechaEmision,
+                    fechaCobro: fechaCobro.toISOString().split('T')[0],
+                    ano: new Date().getFullYear(),
+                    fechaPago: new Date().toISOString().split('T')[0],
+                    medioDePago: 'CHEQUE',
+                    estado: 3,
+                    tipoDocumento: 'CHEQUE',
+                    nCuentaCorriente: numeroCtaCte, // Agrega el número de cuenta corriente a los datos del pago
+                    nCuotas: 1
+                });
+
+                // Agregar datos al array para el PDF
+                datosParaPDF.push({
+                    'Cuota': index + 1,
+                    'Fecha Vencimiento': fila.cells[1].innerText,
+                    'Monto Cuota': fila.cells[2].innerText,
+                    'Banco Cheque': banco,
+                    'Número Documento': nDocumento,
+                    'Monto Cheque': monto,
+                    'Fecha Emisión': fechaEmision
+                });
+            });
+
+            // Envía los datos al servidor mediante una solicitud AJAX
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', 'procesar_pago_cheques.php', true);
+            xhr.setRequestHeader('Content-Type', 'application/json');
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    alert('Pago registrado con éxito.');
+                    generarPDF(datosParaPDF); // Llamar a la función para generar el PDF
+                } else {
+                    alert('Error al registrar el pago.');
+                }
+            };
+            xhr.send(JSON.stringify({pagos: pagos}));
         });
-
-        // Agregar datos al array para el PDF
-        datosParaPDF.push({
-            'Cuota': index + 1,
-            'Fecha Vencimiento': fila.cells[1].innerText,
-            'Monto Cuota': fila.cells[2].innerText,
-            'Banco Cheque': banco,
-            'Número Documento': nDocumento,
-            'Monto Cheque': monto,
-            'Fecha Emisión': fechaEmision,
-     /*        'Fecha Depósito': fechaDeposito */
-        });
-    });
-
-    // Envía los datos al servidor mediante una solicitud AJAX
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'procesar_pago_cheques.php', true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.onload = function() {
-        if (xhr.status === 200) {
-            alert('Pago registrado con éxito.');
-            generarPDF(datosParaPDF); // Llamar a la función para generar el PDF
-        } else {
-            alert('Error al registrar el pago.');
-        }
-    };
-    xhr.send(JSON.stringify({pagos: pagos}));
-});
 
 function generarPDF(datos) {
     var doc = new jspdf.jsPDF();
@@ -605,7 +616,7 @@ function generarPDF(datos) {
     doc.autoTable({ 
         startY: 35,
         head: [['Cuota', 'Fecha Vencimiento', 'Monto Cuota', 'Banco Cheque', 'Número Documento', 'Monto Cheque', 'Fecha Emisión'/* , 'Fecha Depósito' */]],
-        body: datos.map(pago => [pago['Cuota'], pago['Fecha Vencimiento'], pago['Monto Cuota'], pago['Banco Cheque'], pago['Número Documento'], pago['Monto Cheque'], pago['Fecha Emisión']/* , pago['Fecha Depósito' */]])
+        body: datos.map(pago => [pago['Cuota'], pago['Fecha Vencimiento'], pago['Monto Cuota'], pago['Banco Cheque'], pago['Número Documento'], pago['Monto Cheque'], pago['Fecha Emisión']])
     });
 
     // Guardar el PDF
