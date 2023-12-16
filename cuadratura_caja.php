@@ -80,7 +80,7 @@
         <div class="card">
             <div class="card-header">
             <!-- Título personalizado con un ID para mostrar el total recaudado -->
-            <h2 class="text-center custom-title" id="totalRecaudado">TOTAL RECAUDADO $</h2>
+            <h2 class="text-center custom-title" id="totalRecaudadoEfectivo">TOTAL RECAUDADO $</h2>
                         <h4 class="section-title">PAGO CON EFECTIVO</h4>
             </div>
                     <div class="table-responsive mt-4">
@@ -273,7 +273,7 @@ document.getElementById('btnBuscar').addEventListener('click', function() {
 
                 // Actualizar el total recaudado en la interfaz
                 if (medioPago === 'Efectivo') {
-                    document.getElementById('totalRecaudado').textContent = 'TOTAL RECAUDADO $' + totalRecaudado.toFixed(0);
+                    document.getElementById('totalRecaudadoEfectivo').textContent = 'TOTAL RECAUDADO $' + totalRecaudado.toFixed(0);
                 } else if (medioPago === 'Cheque') {
                     document.getElementById('totalRecaudadoCheque').textContent = 'TOTAL RECAUDADO $' + totalRecaudado.toFixed(0);
                 } else if (medioPago === 'Debito') {
@@ -350,7 +350,7 @@ document.getElementById('btnGenerarReporte').addEventListener('click', function(
 
 function actualizarTotalGeneral() {
     let totalGeneral = 0;
-    const idsTotales = ['totalRecaudado', 'totalRecaudadoCheque', 'totalRecaudadoDebito', 'totalRecaudadoCredito'];
+    const idsTotales = ['totalRecaudadoEfectivo', 'totalRecaudadoCheque', 'totalRecaudadoDebito', 'totalRecaudadoCredito'];
 
     idsTotales.forEach(id => {
         let totalTexto = document.getElementById(id).textContent;
