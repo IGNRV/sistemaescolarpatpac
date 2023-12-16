@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $pago->medioDePago,
                 $pago->estado,
                 $pago->tipoDocumento,
-                $pago->nCuentaCorriente, // Usar el valor del número de cuenta corriente
+                $pago->nDocumento, // Usar el valor del número de cuenta corriente
                 $pago->fechaEmision,
                 $pago->fechaCobro,
                 $pago->banco,
