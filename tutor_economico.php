@@ -100,6 +100,57 @@ if (isset($_POST['buscarAlumno'])) {
     }
     $stmt->close();
 }
+if (isset($_POST['buscarAlumnoNombre'])) {
+    $idAlumno = $_POST['idAlumno']; // Asegúrate de que este es el nombre correcto del campo en tu formulario
+
+     // Consulta a la base de datos utilizando ID_ALUMNO
+     $stmt = $conn->prepare("SELECT 
+     a.ID_ALUMNO,
+     a.RUT_ALUMNO,
+     ap.ID_APODERADO,
+     ap.RUT_APODERADO,
+     ap.NOMBRE,
+     ap.AP_PATERNO,
+     ap.AP_MATERNO,
+     ap.FECHA_NAC,
+     ap.PARENTESCO,
+     ap.MAIL_LAB,
+     ap.MAIL_PART,
+     ap.FONO_PART,
+     ap.CALLE,
+     ap.NRO_CALLE,
+     ap.OBS_DIRECCION,
+     ap.VILLA,
+     ap.COMUNA,
+     ap.ID_COMUNA,
+     ap.ID_REGION,
+     ap.FECHA_INGRESO,
+     ap.PERIODO_ESCOLAR,
+     ap.FONO_LAB,
+     ap.TUTOR_ACADEMICO,
+     ap.TUTOR_ECONOMICO,
+     a.PERIODO_ESCOLAR,
+     ap.DELETE_FLAG
+ FROM
+     ALUMNO AS a
+         LEFT JOIN
+     REL_ALUM_APOD AS raa ON raa.ID_ALUMNO = a.ID_ALUMNO
+         LEFT JOIN
+     APODERADO AS ap ON ap.ID_APODERADO = raa.ID_APODERADO
+ WHERE
+     a.ID_ALUMNO = ? AND ap.TUTOR_ECONOMICO = 1 AND ap.DELETE_FLAG = 0");
+$stmt->bind_param("i", $idAlumno); // Cambia "s" por "i" ya que ID_ALUMNO es probablemente un entero
+$stmt->execute();
+$resultado = $stmt->get_result();
+
+if ($resultado->num_rows > 0) {
+$mensaje = "Datos del alumno encontrados.";
+$apoderados = $resultado->fetch_all(MYSQLI_ASSOC);
+} else {
+$mensaje = "No se encontró ningún alumno con ese ID.";
+}
+$stmt->close();
+}
 
 if (!empty($apoderados)) {
     // Asigna los valores a las variables
@@ -254,10 +305,16 @@ if (isset($_POST['ACTUALIZAR_DATOS'])) {
     }
 }
 
+// Consulta para obtener los nombres de los alumnos
+$stmtAlumnos = $conn->prepare("SELECT ID_ALUMNO, CONCAT(NOMBRE, ' ', AP_PATERNO, ' ', AP_MATERNO) AS NOMBRE_COMPLETO FROM ALUMNO");
+$stmtAlumnos->execute();
+$resultadoAlumnos = $stmtAlumnos->get_result();
 
-
-
-
+$alumnosNombres = [];
+while ($fila = $resultadoAlumnos->fetch_assoc()) {
+    $alumnosNombres[$fila['ID_ALUMNO']] = $fila['NOMBRE_COMPLETO'];
+}
+$stmtAlumnos->close();
 ?>
 <div class="tutor-economico">
     <form method="post">
@@ -268,6 +325,18 @@ if (isset($_POST['ACTUALIZAR_DATOS'])) {
             <button type="submit" class="btn btn-primary custom-button mt-3" name="buscarAlumno">Buscar</button>
         </div>
     </form>
+
+    <form action="" method="post">
+    <div class="form-group">
+        <label for="nombreCompletoAlumno">Nombre del alumno:</label>
+        <select class="form-control" id="nombreCompletoAlumno" name="idAlumno"> <!-- Cambia name="nombreCompletoAlumno" por name="idAlumno" -->
+            <?php foreach ($alumnosNombres as $idAlumno => $nombreCompleto): ?>
+                <option value="<?php echo $idAlumno; ?>"><?php echo htmlspecialchars($nombreCompleto); ?></option>
+            <?php endforeach; ?>
+        </select>
+        <button type="submit" class="btn btn-primary custom-button mt-3" name="buscarAlumnoNombre">Buscar por Nombre</button>
+    </div>
+</form>
     <h2>Datos tutor económico</h2>
     <form method="post">
     <input type="hidden" name="rut_original" value="<?php echo htmlspecialchars($rutTutor); ?>">
