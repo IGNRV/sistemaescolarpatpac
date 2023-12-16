@@ -137,7 +137,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
                 </td>
          		<td>              
                 <label for="nCtaCte">Ingrese N° Cuenta Corriente</label>
-                <input type="number" class="form-control" name="nCtaCte[]" value="">
+                <input type="number" class="form-control numeroCtaCte" name="nCtaCte[]" value="">
                 </td>
                 </tr>
                 </table>
@@ -162,6 +162,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
             <th>Monto Cheque</th>
             <th>Fecha Emisión Cheque</th>
             <th>Fecha Depósito Cheque</th>
+            <th>N° Cta Corriente</th>
             <th>Estado Cuota</th>
             <th>Seleccione Valor a Pagar</th>
 
@@ -193,6 +194,9 @@ if (isset($_SESSION['pagoRegistrado'])) {
             </td>
             <td>
                 <input type="date" class="form-control" name="fechaDepositoCheque[]" value="">
+            </td>
+            <td>
+                <input type="number" class="form-control numeroCtaCte" name="nCtaCteCopia[]" value="" readonly>
             </td>
                     <td>
                         <?php if ($pago['ESTADO_PAGO'] == 0): ?>
@@ -232,6 +236,8 @@ if (isset($_SESSION['pagoRegistrado'])) {
             <th>Monto Cheque</th>
             <th>Fecha Emisión Cheque</th>
             <th>Fecha Depósito Cheque</th>
+            <th>N° Cta Corriente</th>
+
             <th>Estado Cuota</th>
             <th>Seleccione Valor a Pagar</th>
 
@@ -244,7 +250,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
                     <td><?php echo htmlspecialchars($pago['FECHA_VENCIMIENTO']); ?></td>
                     <td><?php echo htmlspecialchars($pago['VALOR_A_PAGAR']); ?></td>
                     <td>
-                <select class="form-control" name="bancoCheque[]">
+                    <select class="form-control selectBanco" name="bancoCheque[]">
                     <?php foreach($bancos as $nombreBanco): ?>
                         <option value="<?php echo htmlspecialchars($nombreBanco); ?>">
                             <?php echo htmlspecialchars($nombreBanco); ?>
@@ -263,6 +269,9 @@ if (isset($_SESSION['pagoRegistrado'])) {
             </td>
             <td>
                 <input type="date" class="form-control" name="fechaDepositoCheque[]" value="">
+            </td>
+            <td>
+                <input type="number" class="form-control numeroCtaCte" name="nCtaCteCopia[]" value="" readonly>
             </td>
                     <td>
                         <?php if ($pago['ESTADO_PAGO'] == 0): ?>
@@ -486,95 +495,11 @@ if (isset($_SESSION['pagoRegistrado'])) {
         transferPaymentForm.submit();
     });
 });
-/* document.addEventListener('DOMContentLoaded', function() {
-        var btnSeleccionarValores = document.getElementById('btnSeleccionarValores');
-        var totalAPagarElement = document.getElementById('totalAPagar');
-
-        btnSeleccionarValores.addEventListener('click', function() {
-            var checkboxes = document.querySelectorAll('.seleccionarPago:checked');
-            var totalAPagar = 0;
-            checkboxes.forEach(function(checkbox) {
-                totalAPagar += parseFloat(checkbox.value);
-            });
-            totalAPagarElement.textContent = 'Total a Pagar $' + totalAPagar.toFixed(0);
-        });
-    });
-
-    document.addEventListener('DOMContentLoaded', function() {
-    var btnRegistrarPago = document.getElementById('btnRegistrarPago');
-    var montoEfectivo = document.getElementById('montoEfectivo');
-    var totalAPagarElement = document.getElementById('totalAPagar');
-    var tipoDocumento = document.getElementById('tipoDocumento');
-
-    btnRegistrarPago.addEventListener('click', function() {
-        var montoEfectivo = parseFloat(document.getElementById('montoEfectivo').value || 0);
-        var montoPos = parseFloat(document.getElementById('montoPos').value || 0);
-        var montoCheque = parseFloat(document.getElementById('montoCheque').value || 0);
-        var totalAPagar = parseFloat(document.getElementById('totalAPagar').textContent.replace('Total a Pagar $', ''));
-        var tipoTarjetaPos = document.getElementById('tipoTarjetaPos').value;
-        var cuotasPos = document.getElementById('cuotasPos').value;
-        var tipoDocumentoCheque = document.getElementById('tipoDocumentoCheque').value;
-        var numeroDocumentoCheque = document.getElementById('numeroDocumentoCheque').value;
-        var fechaEmisionCheque = document.getElementById('fechaEmisionCheque').value;
-        
-
-        if (montoEfectivo + montoPos + montoCheque !== totalAPagar) {
-            alert('La suma de los montos no coincide con el total a pagar.');
-            return;
-        }
-
-        var pagosSeleccionados = document.querySelectorAll('.seleccionarPago:checked');
-        var datosPagos = Array.from(pagosSeleccionados).map(function(checkbox) {
-            return {
-                idPago: checkbox.getAttribute('data-id-pago'),
-                codigoProducto: checkbox.getAttribute('data-codigo-producto'),
-                folioPago: checkbox.getAttribute('data-folio-pago'),
-                valor: checkbox.value,
-                fechaVencimiento: checkbox.getAttribute('data-fecha-vencimiento')
-            };
-        });
-
-        var datosAdicionales = {
-            tipoDocumentoEfectivo: document.getElementById('tipoDocumento').value,
-            tipoDocumentoPos: tipoTarjetaPos,
-            cuotasPos: cuotasPos,
-            tipoDocumentoCheque: tipoDocumentoCheque,
-            numeroDocumentoCheque: numeroDocumentoCheque,
-            numeroComprobantePos: document.getElementById('comprobantePos').value,
-            fechaEmisionCheque: fechaEmisionCheque,
-            montoEfectivo: montoEfectivo,
-            montoPos: montoPos,
-            montoCheque: montoCheque,
-            fechaPago: new Date().toISOString().split('T')[0]
-        };
-
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', 'procesar_pago.php', true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.onload = function() {
-            if (xhr.status === 200) {
-                alert('Pago registrado con éxito.');
-            } else {
-                alert('Error al registrar el pago.');
-            }
-        };
-        xhr.send(JSON.stringify({ pagos: datosPagos, adicionales: datosAdicionales }));
-    });
-}); */
 
 document.addEventListener('DOMContentLoaded', function() {
         var checkboxes = document.querySelectorAll('.seleccionarPago');
 
-        /* checkboxes.forEach(function(checkbox) {
-            checkbox.addEventListener('change', function() {
-                // Desactivar todos los otros checkboxes
-                checkboxes.forEach(function(otherCheckbox) {
-                    if (otherCheckbox !== checkbox) {
-                        otherCheckbox.disabled = checkbox.checked;
-                    }
-                });
-            });
-        }); */
+  
 
         // Función para calcular el total a pagar y actualizarlo cuando cambien las selecciones
         function calcularTotalAPagar() {
@@ -696,6 +621,17 @@ document.addEventListener('DOMContentLoaded', function() {
             var selectedValue = event.target.value;
             selects.forEach(function(otherSelect) {
                 otherSelect.value = selectedValue;
+            });
+        });
+    });
+});
+document.addEventListener('DOMContentLoaded', function() {
+    var numeroCtaCteInputs = document.querySelectorAll('.numeroCtaCte');
+    numeroCtaCteInputs.forEach(function(input) {
+        input.addEventListener('change', function(event) {
+            var inputValue = event.target.value;
+            numeroCtaCteInputs.forEach(function(otherInput) {
+                otherInput.value = inputValue;
             });
         });
     });
