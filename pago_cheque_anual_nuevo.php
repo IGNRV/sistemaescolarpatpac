@@ -122,12 +122,19 @@ if (isset($_SESSION['pagoRegistrado'])) {
                             <button type="submit" class="btn btn-primary custom-button mt-3" id="btnBuscarAlumno" name="btnBuscarAlumno">Buscar</button>
                         </div>
                         
-                        <div class="form-group">
+                        <!-- Campo RUT del padre/poderado -->
+                        <!-- <div class="form-group">
+                            <label for="rutPadre">RUT del Padre/Apoderado</label>
+                            <input type="text" class="form-control" id="rutPadre" placeholder="Ingrese el RUT del Padre/Apoderado">
+                            <button type="button" class="btn btn-primary custom-button mt-3" id="btnBuscarApoderado">Buscar</button>
+                        </div> -->
+
+               <div class="form-group">
 				<table class="table" id="datosBanco">
                 <tr>
                 <td>            
                 <label for="bancoCheque">Seleccione el Banco</label>
-                <select class="form-control selectBanco" name="bancoCheque[]">
+                <select class="form-control" name="bancoCheque[]">
                     <?php foreach($bancos as $nombreBanco): ?>
                         <option value="<?php echo htmlspecialchars($nombreBanco); ?>">
                             <?php echo htmlspecialchars($nombreBanco); ?>
@@ -143,8 +150,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
                 </table>
          		</div>
 
-
-<!-- Tabla de pagos -->
+<!-- TabtaCte pagos -->
 
 <div id="datosAlumnos">
     <!-- Las tablas generadas se insertarán aquí -->
@@ -157,7 +163,6 @@ if (isset($_SESSION['pagoRegistrado'])) {
             <th>N° Cuota</th>
             <th>Fecha Vencimiento</th>
             <th>Monto Cuota</th>
-            <th>Banco Cheque</th>
             <th>N° Documento Cheque</th>
             <th>Monto Cheque</th>
             <th>Fecha Emisión Cheque</th>
@@ -173,15 +178,6 @@ if (isset($_SESSION['pagoRegistrado'])) {
                     <td><?php echo $index + 1; ?></td>
                     <td><?php echo htmlspecialchars($pago['FECHA_VENCIMIENTO']); ?></td>
                     <td><?php echo htmlspecialchars($pago['VALOR_A_PAGAR']); ?></td>
-                    <td>
-                    <select class="form-control selectBanco" name="bancoCheque[]">
-                    <?php foreach($bancos as $nombreBanco): ?>
-                        <option value="<?php echo htmlspecialchars($nombreBanco); ?>">
-                            <?php echo htmlspecialchars($nombreBanco); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </td>
             <td>
                 <input type="number" class="form-control" name="nDocumentoCheque[]" value="">
             </td>
@@ -227,7 +223,6 @@ if (isset($_SESSION['pagoRegistrado'])) {
             <th>N° Cuota</th>
             <th>Fecha Vencimiento</th>
             <th>Monto Cuota</th>
-            <th>Banco Cheque</th>
             <th>N° Documento Cheque</th>
             <th>Monto Cheque</th>
             <th>Fecha Emisión Cheque</th>
@@ -243,15 +238,6 @@ if (isset($_SESSION['pagoRegistrado'])) {
                     <td><?php echo $index + 1; ?></td>
                     <td><?php echo htmlspecialchars($pago['FECHA_VENCIMIENTO']); ?></td>
                     <td><?php echo htmlspecialchars($pago['VALOR_A_PAGAR']); ?></td>
-                    <td>
-                <select class="form-control" name="bancoCheque[]">
-                    <?php foreach($bancos as $nombreBanco): ?>
-                        <option value="<?php echo htmlspecialchars($nombreBanco); ?>">
-                            <?php echo htmlspecialchars($nombreBanco); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </td>
             <td>
                 <input type="number" class="form-control" name="nDocumentoCheque[]" value="">
             </td>
@@ -688,19 +674,6 @@ document.addEventListener('DOMContentLoaded', function() {
     // Borrar el indicador de éxito de sessionStorage
     sessionStorage.removeItem('pagoRegistrado');
 });
-
-document.addEventListener('DOMContentLoaded', function() {
-    var selects = document.querySelectorAll('.selectBanco');
-    selects.forEach(function(select) {
-        select.addEventListener('change', function(event) {
-            var selectedValue = event.target.value;
-            selects.forEach(function(otherSelect) {
-                otherSelect.value = selectedValue;
-            });
-        });
-    });
-});
-
 </script>
 
 </body>

@@ -1,11 +1,10 @@
 <?php
 require_once 'db.php'; // Asegúrate de que este es el camino correcto hacia tu archivo db.php
-/* ini_set('display_errors', 1); */
+
 $saldoPeriodoAnterior = [];
 $cuotasPeriodoActual = [];
 $mensaje = '';
 
-// Consulta para obtener los nombres de los bancos
 $bancos = [];
 $stmtBancos = $conn->prepare("SELECT NOMBRE_BANCO FROM BANCOS");
 $stmtBancos->execute();
@@ -16,45 +15,44 @@ while ($banco = $resultadoBancos->fetch_assoc()) {
 }
 $stmtBancos->close();
 
-
 if (isset($_POST['btnBuscarAlumno'])) {
     $rutAlumno = $_POST['rutAlumno'];
     $fechaActual = date('Y-m-d');
 
     // Consulta a la base de datos
     $stmt = $conn->prepare("SELECT 
-    hp.ID_PAGO,
-    hp.ID_ALUMNO,
-    a.RUT_ALUMNO,
-    hp.CODIGO_PRODUCTO,
-    hp.FOLIO_PAGO,
-    hp.VALOR_ARANCEL,
-    hp.DESCUENTO_BECA,
-    hp.OTROS_DESCUENTOS,
-    hp.VALOR_A_PAGAR,
-    hp.FECHA_PAGO,
-    hp.MEDIO_PAGO,
-    hp.NRO_MEDIOPAGO,
-    hp.FECHA_SUSCRIPCION,
-    hp.BANCO_EMISOR,
-    hp.TIPO_MEDIOPAGO,
-    hp.ESTADO_PAGO,
-    hp.TIPO_DOCUMENTO,
-    hp.NUMERO_DOCUMENTO,
-    hp.FECHA_VENCIMIENTO,
-    hp.FECHA_INGRESO,
-    hp.FECHA_EMISION,
-    hp.FECHA_COBRO,
-    hp.ID_PERIODO_ESCOLAR,
-    hp.CODIGO_PRODUCTO
-FROM
-    c1occsyspay.HISTORIAL_PAGOS AS hp
+        hp.ID_PAGO,
+        hp.ID_ALUMNO,
+        a.RUT_ALUMNO,
+        hp.CODIGO_PRODUCTO,
+        hp.FOLIO_PAGO,
+        hp.VALOR_ARANCEL,
+        hp.DESCUENTO_BECA,
+        hp.OTROS_DESCUENTOS,
+        hp.VALOR_A_PAGAR,
+        hp.FECHA_PAGO,
+        hp.MEDIO_PAGO,
+        hp.NRO_MEDIOPAGO,
+        hp.FECHA_SUSCRIPCION,
+        hp.BANCO_EMISOR,
+        hp.TIPO_MEDIOPAGO,
+        hp.ESTADO_PAGO,
+        hp.TIPO_DOCUMENTO,
+        hp.NUMERO_DOCUMENTO,
+        hp.FECHA_VENCIMIENTO,
+        hp.FECHA_INGRESO,
+        hp.FECHA_EMISION,
+        hp.FECHA_COBRO,
+        hp.ID_PERIODO_ESCOLAR,
+        hp.CODIGO_PRODUCTO
+    FROM
+        c1occsyspay.HISTORIAL_PAGOS AS hp
         LEFT JOIN
-    ALUMNO AS a ON a.ID_ALUMNO = hp.ID_ALUMNO
-WHERE
-    a.RUT_ALUMNO = ?
-ORDER BY
-    hp.FECHA_VENCIMIENTO ASC"); // Ordenar por FECHA_VENCIMIENTO ascendente
+        ALUMNO AS a ON a.ID_ALUMNO = hp.ID_ALUMNO
+    WHERE
+        a.RUT_ALUMNO = ?
+    ORDER BY
+        hp.FECHA_VENCIMIENTO ASC");
     $stmt->bind_param("s", $rutAlumno);
     $stmt->execute();
     $resultado = $stmt->get_result();
@@ -63,14 +61,13 @@ ORDER BY
         while ($fila = $resultado->fetch_assoc()) {
             $fechaVencimiento = new DateTime($fila['FECHA_VENCIMIENTO']);
             if ($fechaVencimiento < new DateTime($fechaActual) && $fila['ESTADO_PAGO'] == 0) {
-                // Actualizar el estado a vencido (1) si la fecha de vencimiento es anterior a la fecha actual
                 $updateStmt = $conn->prepare("UPDATE HISTORIAL_PAGOS SET ESTADO_PAGO = 1 WHERE ID_PAGO = ?");
                 $updateStmt->bind_param("i", $fila['ID_PAGO']);
                 $updateStmt->execute();
                 $updateStmt->close();
                 $fila['ESTADO_PAGO'] = 1;
             }
-            
+
             if ($fila['CODIGO_PRODUCTO'] == 2) {
                 $saldoPeriodoAnterior[] = $fila;
             } elseif ($fila['CODIGO_PRODUCTO'] == 1) {
@@ -83,11 +80,6 @@ ORDER BY
     }
     $stmt->close();
 }
-
-if (isset($_SESSION['pagoRegistrado'])) {
-    $mensaje = "Pago registrado con éxito.";
-    unset($_SESSION['pagoRegistrado']); // Borrar el indicador de sesión
-}
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -98,7 +90,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
     <!-- Agrega los enlaces a los estilos de Bootstrap -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>    
     
 </head>
 <body>
@@ -110,7 +102,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
         <div class="col-md-10">
             <div class="card">
                 <div class="card-header">
-                    <h2 class="text-center">Pago de cheques anual</h2>
+                    <h2 class="text-center">Portal de Pago</h2>
                 </div>
                 <div class="card-body">
                     <!-- Formulario de pago -->
@@ -122,26 +114,12 @@ if (isset($_SESSION['pagoRegistrado'])) {
                             <button type="submit" class="btn btn-primary custom-button mt-3" id="btnBuscarAlumno" name="btnBuscarAlumno">Buscar</button>
                         </div>
                         
-                        <div class="form-group">
-				<table class="table" id="datosBanco">
-                <tr>
-                <td>            
-                <label for="bancoCheque">Seleccione el Banco</label>
-                <select class="form-control selectBanco" name="bancoCheque[]">
-                    <?php foreach($bancos as $nombreBanco): ?>
-                        <option value="<?php echo htmlspecialchars($nombreBanco); ?>">
-                            <?php echo htmlspecialchars($nombreBanco); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-                </td>
-         		<td>              
-                <label for="nCtaCte">Ingrese N° Cuenta Corriente</label>
-                <input type="number" class="form-control" name="nCtaCte[]" value="">
-                </td>
-                </tr>
-                </table>
-         		</div>
+                        <!-- Campo RUT del padre/poderado -->
+                        <!-- <div class="form-group">
+                            <label for="rutPadre">RUT del Padre/Apoderado</label>
+                            <input type="text" class="form-control" id="rutPadre" placeholder="Ingrese el RUT del Padre/Apoderado">
+                            <button type="button" class="btn btn-primary custom-button mt-3" id="btnBuscarApoderado">Buscar</button>
+                        </div> -->
 
 
 <!-- Tabla de pagos -->
@@ -152,48 +130,25 @@ if (isset($_SESSION['pagoRegistrado'])) {
 <div class="mt-4 table-responsive">
     <h4>Saldo Periodo Anterior</h4>
     <table class="table" id="tablaSaldoPeriodoAnterior">
-    <thead>
-        <tr>
-            <th>N° Cuota</th>
-            <th>Fecha Vencimiento</th>
-            <th>Monto Cuota</th>
-            <th>Banco Cheque</th>
-            <th>N° Documento Cheque</th>
-            <th>Monto Cheque</th>
-            <th>Fecha Emisión Cheque</th>
-            <th>Fecha Depósito Cheque</th>
-            <th>Estado Cuota</th>
-            <th>Seleccione Valor a Pagar</th>
-
-        </tr>
-    </thead>
+        <thead>
+            <tr>
+                <th>N° Cuota</th>
+                <th>Fecha Vencimiento</th>
+                <th>Monto</th>
+<!--                 <th>Medio de Pago</th>
+ -->                <th>Fecha de Pago</th>
+                <th>Estado</th>
+                <th>Seleccione Valor a Pagar</th>
+            </tr>
+        </thead>
         <tbody>
             <?php foreach ($saldoPeriodoAnterior as $index => $pago): ?>
                 <tr>
                     <td><?php echo $index + 1; ?></td>
                     <td><?php echo htmlspecialchars($pago['FECHA_VENCIMIENTO']); ?></td>
                     <td><?php echo htmlspecialchars($pago['VALOR_A_PAGAR']); ?></td>
-                    <td>
-                    <select class="form-control selectBanco" name="bancoCheque[]">
-                    <?php foreach($bancos as $nombreBanco): ?>
-                        <option value="<?php echo htmlspecialchars($nombreBanco); ?>">
-                            <?php echo htmlspecialchars($nombreBanco); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </td>
-            <td>
-                <input type="number" class="form-control" name="nDocumentoCheque[]" value="">
-            </td>
-            <td>
-                <input type="number" class="form-control" name="montoCheque[]" value="">
-            </td>
-            <td>
-                <input type="date" class="form-control" name="fechaEmisionCheque[]" value="">
-            </td>
-            <td>
-                <input type="date" class="form-control" name="fechaDepositoCheque[]" value="">
-            </td>
+<!--                     <td><?php echo htmlspecialchars($pago['MEDIO_PAGO']); ?></td>
+ -->                    <td><?php echo htmlspecialchars($pago['FECHA_PAGO']); ?></td>
                     <td>
                         <?php if ($pago['ESTADO_PAGO'] == 0): ?>
                             VIGENTE
@@ -206,7 +161,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
                         <?php endif; ?>
                     </td>
                     <td>
-                        <?php if ($pago['ESTADO_PAGO'] != 2): ?>
+                        <?php if ($pago['ESTADO_PAGO'] != 2 && $pago['ESTADO_PAGO'] != 3): ?>
                             <input type="checkbox" class="seleccionarPago" value="<?php echo htmlspecialchars($pago['VALOR_A_PAGAR']); ?>" data-id-pago="<?php echo $pago['ID_PAGO']; ?>">
                         <?php else: ?>
                             <input type="checkbox" class="seleccionarPago" value="<?php echo htmlspecialchars($pago['VALOR_A_PAGAR']); ?>" data-id-pago="<?php echo $pago['ID_PAGO']; ?>" disabled>
@@ -222,50 +177,27 @@ if (isset($_SESSION['pagoRegistrado'])) {
 <div class="mt-4 table-responsive">
     <h4>Cuotas Periodo Actual</h4>
     <table class="table" id="tablaCuotasPeriodoActual">
-    <thead>
-        <tr>
-            <th>N° Cuota</th>
-            <th>Fecha Vencimiento</th>
-            <th>Monto Cuota</th>
-            <th>Banco Cheque</th>
-            <th>N° Documento Cheque</th>
-            <th>Monto Cheque</th>
-            <th>Fecha Emisión Cheque</th>
-            <th>Fecha Depósito Cheque</th>
-            <th>Estado Cuota</th>
-            <th>Seleccione Valor a Pagar</th>
-
-        </tr>
-    </thead>
+        <thead>
+            <tr>
+                <th>N° Cuota</th>
+                <th>Fecha Vencimiento</th>
+                <th>Monto</th>
+                <!-- <th>Medio de Pago</th> -->
+                <th>Fecha de Pago</th>
+                <th>Estado</th>
+                <th>Seleccione Valor a Pagar</th>
+            </tr>
+        </thead>
         <tbody>
             <?php foreach ($cuotasPeriodoActual as $index => $pago): ?>
                 <tr>
                     <td><?php echo $index + 1; ?></td>
                     <td><?php echo htmlspecialchars($pago['FECHA_VENCIMIENTO']); ?></td>
                     <td><?php echo htmlspecialchars($pago['VALOR_A_PAGAR']); ?></td>
+                    <!-- <td><?php echo htmlspecialchars($pago['MEDIO_PAGO']); ?></td> -->
+                    <td><?php echo htmlspecialchars($pago['FECHA_PAGO']); ?></td>
                     <td>
-                <select class="form-control" name="bancoCheque[]">
-                    <?php foreach($bancos as $nombreBanco): ?>
-                        <option value="<?php echo htmlspecialchars($nombreBanco); ?>">
-                            <?php echo htmlspecialchars($nombreBanco); ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-            </td>
-            <td>
-                <input type="number" class="form-control" name="nDocumentoCheque[]" value="">
-            </td>
-            <td>
-                <input type="number" class="form-control" name="montoCheque[]" value="">
-            </td>
-            <td>
-                <input type="date" class="form-control" name="fechaEmisionCheque[]" value="">
-            </td>
-            <td>
-                <input type="date" class="form-control" name="fechaDepositoCheque[]" value="">
-            </td>
-                    <td>
-                        <?php if ($pago['ESTADO_PAGO'] == 0): ?>
+                    <?php if ($pago['ESTADO_PAGO'] == 0): ?>
                             VIGENTE
                         <?php elseif ($pago['ESTADO_PAGO'] == 1): ?>
                             VENCIDA
@@ -276,7 +208,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
                         <?php endif; ?>
                     </td>
                     <td>
-                        <?php if ($pago['ESTADO_PAGO'] != 2): ?>
+                    <?php if ($pago['ESTADO_PAGO'] != 2 && $pago['ESTADO_PAGO'] != 3): ?>
                             <input type="checkbox" class="seleccionarPago" value="<?php echo htmlspecialchars($pago['VALOR_A_PAGAR']); ?>" data-id-pago="<?php echo $pago['ID_PAGO']; ?>">
                         <?php else: ?>
                             <input type="checkbox" class="seleccionarPago" value="<?php echo htmlspecialchars($pago['VALOR_A_PAGAR']); ?>" data-id-pago="<?php echo $pago['ID_PAGO']; ?>" disabled>
@@ -295,16 +227,16 @@ if (isset($_SESSION['pagoRegistrado'])) {
                         <!-- Sección "Total a Pagar $" -->
                         <div class="mt-4">
                             <h4 id="totalAPagar">Total a Pagar $</h4>
-                            <!-- <h6>Seleccione Medio de Pago</h6> -->
-                            <div class="form-check" style="display:none;">
-                                <input class="form-check-input" type="checkbox" name="metodoPago" value="efectivo" id="efectivo" >
+                            <h6>Seleccione Medio de Pago</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="metodoPago" value="efectivo" id="efectivo">
                                 <label class="form-check-label" for="efectivo">Efectivo</label>
                             </div>
-                            <div class="form-check" style="display:none;">
-                                <input class="form-check-input" type="checkbox" name="metodoPago" value="pagoPos" id="pagoPos" >
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="metodoPago" value="pagoPos" id="pagoPos">
                                 <label class="form-check-label" for="pagoPos">Pago Tarjeta POS</label>
                             </div>
-                            <div class="form-check" style="display:none;">
+                            <div class="form-check">
                                 <input class="form-check-input" type="checkbox" name="metodoPago" value="cheque" id="cheque">
                                 <label class="form-check-label" for="cheque">Cheque</label>
                             </div>
@@ -314,8 +246,12 @@ if (isset($_SESSION['pagoRegistrado'])) {
                         <div id="seccionEfectivo" class="mt-4" style="display:none;">
                             <h4>PAGO CON EFECTIVO</h4>
                             <div class="form-group">
-                                <label for="tipoDocumento">Tipo Documento</label>
-                                <input type="text" class="form-control" id="tipoDocumento" placeholder="Ingrese el tipo de documento">
+                            <label for="tipoDocumento">Tipo Documento</label>
+                                <select class="form-control" id="tipoDocumento" name="tipoDocumento">
+                                    <option value="EFECTIVO">EFECTIVO</option>
+                                    <option value="TRANSFERENCIA">TRANSFERENCIA</option>
+                                    <option value="DEPOSITO DIRECTO">DEPOSITO DIRECTO</option>
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label for="montoEfectivo">Monto</label>
@@ -343,7 +279,14 @@ if (isset($_SESSION['pagoRegistrado'])) {
                             </div>
                             <div class="form-group">
                                 <label for="bancoCheque">Banco</label>
-                                <input type="text" class="form-control" id="bancoCheque" placeholder="Ingrese el banco">
+                                <select class="form-control" id="bancoCheque" name="bancoCheque">
+                                    <option value="">Seleccione un banco</option>
+                                    <?php foreach ($bancos as $nombreBanco): ?>
+                                        <option value="<?php echo htmlspecialchars($nombreBanco); ?>">
+                                            <?php echo htmlspecialchars($nombreBanco); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
                             </div>
                             <div class="form-group">
                                 <label for="montoCheque">Monto</label>
@@ -486,7 +429,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
         transferPaymentForm.submit();
     });
 });
-/* document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function() {
         var btnSeleccionarValores = document.getElementById('btnSeleccionarValores');
         var totalAPagarElement = document.getElementById('totalAPagar');
 
@@ -516,12 +459,13 @@ if (isset($_SESSION['pagoRegistrado'])) {
         var tipoDocumentoCheque = document.getElementById('tipoDocumentoCheque').value;
         var numeroDocumentoCheque = document.getElementById('numeroDocumentoCheque').value;
         var fechaEmisionCheque = document.getElementById('fechaEmisionCheque').value;
-        
+        var bancoSeleccionado = document.getElementById('bancoCheque').value;
 
-        if (montoEfectivo + montoPos + montoCheque !== totalAPagar) {
+
+       /*  if (montoEfectivo + montoPos + montoCheque !== totalAPagar) {
             alert('La suma de los montos no coincide con el total a pagar.');
             return;
-        }
+        } */
 
         var pagosSeleccionados = document.querySelectorAll('.seleccionarPago:checked');
         var datosPagos = Array.from(pagosSeleccionados).map(function(checkbox) {
@@ -545,7 +489,8 @@ if (isset($_SESSION['pagoRegistrado'])) {
             montoEfectivo: montoEfectivo,
             montoPos: montoPos,
             montoCheque: montoCheque,
-            fechaPago: new Date().toISOString().split('T')[0]
+            fechaPago: new Date().toISOString().split('T')[0],
+            bancoSeleccionado: bancoSeleccionado
         };
 
         var xhr = new XMLHttpRequest();
@@ -553,19 +498,22 @@ if (isset($_SESSION['pagoRegistrado'])) {
         xhr.setRequestHeader('Content-Type', 'application/json');
         xhr.onload = function() {
             if (xhr.status === 200) {
-                alert('Pago registrado con éxito.');
+                var response = JSON.parse(xhr.responseText);
+                alert(response.mensaje);
+                window.folioPago = response.folioPago; // Almacena el folioPago para su uso posterior
+                generarPDF(montoEfectivo, montoPos, montoCheque);
             } else {
                 alert('Error al registrar el pago.');
             }
         };
         xhr.send(JSON.stringify({ pagos: datosPagos, adicionales: datosAdicionales }));
     });
-}); */
+});
 
 document.addEventListener('DOMContentLoaded', function() {
         var checkboxes = document.querySelectorAll('.seleccionarPago');
 
-        /* checkboxes.forEach(function(checkbox) {
+        checkboxes.forEach(function(checkbox) {
             checkbox.addEventListener('change', function() {
                 // Desactivar todos los otros checkboxes
                 checkboxes.forEach(function(otherCheckbox) {
@@ -574,7 +522,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 });
             });
-        }); */
+        });
 
         // Función para calcular el total a pagar y actualizarlo cuando cambien las selecciones
         function calcularTotalAPagar() {
@@ -597,109 +545,80 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 
-    document.getElementById('btnRegistrarPago').addEventListener('click', function() {
+    function generarPDF(montoEfectivo, montoPos, montoCheque) {
+    var doc = new jspdf.jsPDF();
     var pagosSeleccionados = document.querySelectorAll('.seleccionarPago:checked');
-    var pagos = [];
-    var datosParaPDF = []; // Array para almacenar los datos que irán en el PDF
+    var datosParaPDF = [];
+    var totalAPagar = 0;
+
 
     pagosSeleccionados.forEach(function(checkbox, index) {
-        var idPago = checkbox.getAttribute('data-id-pago');
-        var fila = checkbox.closest('tr'); // Encuentra la fila del checkbox
+        var fila = checkbox.closest('tr');
+        var cuota = fila.cells[0].innerText;
+        var fechaVencimiento = fila.cells[1].innerText;
+        var monto = parseFloat(fila.cells[2].innerText);
+        var fechaPago = fila.cells[4].innerText; // Añadir fecha de pago
+        var estado = fila.cells[5].innerText; // Añadir estado del pago
 
-        var banco = fila.querySelector('[name="bancoCheque[]"]').value;
-        var nDocumento = fila.querySelector('[name="nDocumentoCheque[]"]').value;
-        var monto = fila.querySelector('[name="montoCheque[]"]').value;
-        var fechaEmision = fila.querySelector('[name="fechaEmisionCheque[]"]').value;
-        var fechaDeposito = fila.querySelector('[name="fechaDepositoCheque[]"]').value;
+        totalAPagar += monto;
 
-        var fechaCobro = new Date(fechaEmision);
-        fechaCobro.setDate(fechaCobro.getDate() + 1);
-
-        pagos.push({
-            idPago: idPago,
-            banco: banco,
-            nDocumento: nDocumento,
-            monto: monto,
-            fechaEmision: fechaEmision,
-            fechaDeposito: fechaDeposito,
-            fechaCobro: fechaCobro.toISOString().split('T')[0],
-            ano: new Date().getFullYear(),
-            fechaPago: new Date().toISOString().split('T')[0],
-            medioDePago: 'CHEQUE',
-            estado: 3,
-            tipoDocumento: 'CHEQUE',
-            nCuotas: 1
-        });
-
-        // Agregar datos al array para el PDF
-        datosParaPDF.push({
-            'Cuota': index + 1,
-            'Fecha Vencimiento': fila.cells[1].innerText,
-            'Monto Cuota': fila.cells[2].innerText,
-            'Banco Cheque': banco,
-            'Número Documento': nDocumento,
-            'Monto Cheque': monto,
-            'Fecha Emisión': fechaEmision,
-            'Fecha Depósito': fechaDeposito
-        });
+        // Agregar datos adicionales al array
+        datosParaPDF.push([cuota, fechaVencimiento, monto.toFixed(0), fechaPago, estado]);
     });
-
-    // Envía los datos al servidor mediante una solicitud AJAX
-    var xhr = new XMLHttpRequest();
-    xhr.open('POST', 'procesar_pago_cheques.php', true);
-    xhr.setRequestHeader('Content-Type', 'application/json');
-    xhr.onload = function() {
-        if (xhr.status === 200) {
-            alert('Pago registrado con éxito.');
-            generarPDF(datosParaPDF); // Llamar a la función para generar el PDF
-        } else {
-            alert('Error al registrar el pago.');
-        }
-    };
-    xhr.send(JSON.stringify({pagos: pagos}));
-});
-
-function generarPDF(datos) {
-    var doc = new jspdf.jsPDF();
-    var total = datos.reduce((acc, pago) => acc + parseFloat(pago['Monto Cuota'].replace(/[^0-9.-]+/g,"")), 0); // Calcula el total
 
     doc.setFontSize(18);
     doc.text('Recibo de Pagos', 14, 20);
     doc.setFontSize(12);
-    doc.text('Total: $' + total.toFixed(0), 14, 30);
+    doc.text('Total: $' + totalAPagar.toFixed(0), 14, 30);
 
-    doc.autoTable({ 
-        startY: 35,
-        head: [['Cuota', 'Fecha Vencimiento', 'Monto Cuota', 'Banco Cheque', 'Número Documento', 'Monto Cheque', 'Fecha Emisión', 'Fecha Depósito']],
-        body: datos.map(pago => [pago['Cuota'], pago['Fecha Vencimiento'], pago['Monto Cuota'], pago['Banco Cheque'], pago['Número Documento'], pago['Monto Cheque'], pago['Fecha Emisión'], pago['Fecha Depósito']])
+    // Asegúrate de que el texto del folio tenga suficiente espacio y no sea tapado por la tabla
+    var espacioParaFolio = 10; // Espacio adicional para el folio
+    var posicionYFolio = 40;
+    doc.text('Número de Folio: ' + window.folioPago, 14, posicionYFolio);
+
+    // Agregar los montos de pago al PDF
+    var yPos = posicionYFolio + espacioParaFolio; // Ajusta la posición vertical según sea necesario
+    doc.text('Monto cancelado de la cuota en efectivo: $' + montoEfectivo, 14, yPos);
+    yPos += 10; // Incrementar la posición Y para el siguiente texto
+    doc.text('Monto cancelado de la cuota con POS: $' + montoPos, 14, yPos);
+    yPos += 10; // Incrementar la posición Y para el siguiente texto
+    doc.text('Monto cancelado de la cuota con Cheque: $' + montoCheque, 14, yPos);
+    yPos += 10; // Incrementar la posición Y para el siguiente texto
+    doc.text('Monto total cancelado: $' + (montoEfectivo + montoPos + montoCheque), 14, yPos);
+
+
+    // Ajusta la posición de inicio de la tabla para que esté por debajo de los montos
+    var posicionInicioTabla = yPos + 10;
+
+    doc.autoTable({
+        startY: posicionInicioTabla,
+        head: [['Cuota', 'Fecha Vencimiento', 'Monto', 'Fecha de Pago', 'Estado']],
+        body: datosParaPDF
     });
 
-    // Guardar el PDF
-    doc.save('recibo_pagos_cuotas.pdf');
-
-    // Establecer un indicador de éxito en sessionStorage y recargar la página
-    sessionStorage.setItem('pagoRegistrado', 'true');
+    doc.save('recibo_pagos.pdf');
+    // Suponiendo que se desea recargar la página después de guardar el PDF
     setTimeout(function() {
         window.location.reload();
-    }, 1000); // Recarga la página después de 1 segundo
+    }, 1000); // Recarga después de 1 segundo
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Borrar el indicador de éxito de sessionStorage
-    sessionStorage.removeItem('pagoRegistrado');
-});
 
-document.addEventListener('DOMContentLoaded', function() {
-    var selects = document.querySelectorAll('.selectBanco');
-    selects.forEach(function(select) {
-        select.addEventListener('change', function(event) {
-            var selectedValue = event.target.value;
-            selects.forEach(function(otherSelect) {
-                otherSelect.value = selectedValue;
-            });
-        });
+document.getElementById('tipoTarjetaPos').addEventListener('change', function() {
+        var tipoTarjetaSeleccionado = this.value;
+        var campoCuotas = document.getElementById('cuotasPos');
+
+        if (tipoTarjetaSeleccionado === 'debito') {
+            // Si se selecciona tarjeta débito, establecer cuotas a 1 y bloquear el campo
+            campoCuotas.value = '1';
+            campoCuotas.disabled = true;
+        } else {
+            // Si se selecciona otra opción, desbloquear el campo y limpiarlo
+            campoCuotas.disabled = false;
+            campoCuotas.value = '';
+        }
     });
-});
+
 
 </script>
 
