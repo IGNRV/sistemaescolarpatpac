@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $pago->medioDePago,
                 $pago->estado,
                 $pago->tipoDocumento,
-                $pago->nDocumento, // Usar el valor del número de cuenta corriente
+                $pago->nDocumento,
                 $pago->fechaEmision,
                 $pago->fechaCobro,
                 $pago->banco,
@@ -30,26 +30,45 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             );
             $stmt->execute();
 
-            // Si la inserción fue exitosa, actualiza HISTORIAL_PAGOS
+            // Consulta para obtener el valor actual pagado
             $query = $conn->prepare("SELECT VALOR_PAGADO FROM HISTORIAL_PAGOS WHERE ID_PAGO = ?");
-    $query->bind_param("i", $pago->idPago);
-    $query->execute();
-    $resultado = $query->get_result();
-    if ($fila = $resultado->fetch_assoc()) {
-        $valorActual = $fila['VALOR_PAGADO'];
-    } else {
-        $valorActual = 0; // O manejar el caso de no encontrar el pago
-    }
-    $query->close();
+            $query->bind_param("i", $pago->idPago);
+            $query->execute();
+            $resultado = $query->get_result();
+            if ($fila = $resultado->fetch_assoc()) {
+                $valorActual = $fila['VALOR_PAGADO'];
+            } else {
+                $valorActual = 0; // O manejar el caso de no encontrar el pago
+            }
+            $query->close();
 
-    // Calcula el nuevo valor
-    $nuevoValor = $valorActual + $pago->monto;
+            // Calcula el nuevo valor
+            $nuevoValor = $valorActual + $pago->monto;
 
-    // Actualiza VALOR_PAGADO sumando el nuevo valor
-    $updateStmt = $conn->prepare("UPDATE HISTORIAL_PAGOS SET ESTADO_PAGO = 3, VALOR_PAGADO = ? WHERE ID_PAGO = ?");
-    $updateStmt->bind_param("di", $nuevoValor, $pago->idPago);
-    $updateStmt->execute();
-    $updateStmt->close();
+            // Actualiza VALOR_PAGADO sumando el nuevo valor
+            $updateStmt = $conn->prepare("UPDATE HISTORIAL_PAGOS SET VALOR_PAGADO = ? WHERE ID_PAGO = ?");
+            $updateStmt->bind_param("di", $nuevoValor, $pago->idPago);
+            $updateStmt->execute();
+            $updateStmt->close();
+
+            // Consulta para obtener el VALOR_A_PAGAR
+            $queryValorAPagar = $conn->prepare("SELECT VALOR_A_PAGAR FROM HISTORIAL_PAGOS WHERE ID_PAGO = ?");
+            $queryValorAPagar->bind_param("i", $pago->idPago);
+            $queryValorAPagar->execute();
+            $resultadoValorAPagar = $queryValorAPagar->get_result();
+            if ($filaValorAPagar = $resultadoValorAPagar->fetch_assoc()) {
+                $valorAPagar = $filaValorAPagar['VALOR_A_PAGAR'];
+            } else {
+                $valorAPagar = 0; // O manejar el caso de no encontrar el pago
+            }
+            $queryValorAPagar->close();
+
+            // Compara VALOR_PAGADO con VALOR_A_PAGAR y actualiza ESTADO_PAGO
+            $estadoPago = ($nuevoValor == $valorAPagar) ? 2 : 3;
+            $updateEstadoPagoStmt = $conn->prepare("UPDATE HISTORIAL_PAGOS SET ESTADO_PAGO = ? WHERE ID_PAGO = ?");
+            $updateEstadoPagoStmt->bind_param("ii", $estadoPago, $pago->idPago);
+            $updateEstadoPagoStmt->execute();
+            $updateEstadoPagoStmt->close();
         }
 
         $conn->commit(); // Si todo salió bien, confirma los cambios
