@@ -540,6 +540,8 @@ document.addEventListener('DOMContentLoaded', function() {
         var monto = parseFloat(fila.querySelector('[name="montoCheque[]"]').value); // Obtener el valor del monto
         var fechaEmision = fila.querySelector('[name="fechaEmisionCheque[]"]').value;
         var fechaDeposito = fila.querySelector('[name="fechaDepositoCheque[]"]').value;
+        var numeroCtaCte = fila.querySelector('.numeroCtaCte').value; // Captura el valor del número de cuenta corriente
+
 
         var fechaCobro = new Date(fechaEmision);
         fechaCobro.setDate(fechaCobro.getDate() + 1);
@@ -558,6 +560,8 @@ document.addEventListener('DOMContentLoaded', function() {
             medioDePago: 'CHEQUE',
             estado: 3,
             tipoDocumento: 'CHEQUE',
+            nCuentaCorriente: numeroCtaCte, // Agrega el número de cuenta corriente a los datos del pago
+
             nCuotas: 1
         });
 
