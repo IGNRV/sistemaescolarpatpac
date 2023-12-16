@@ -162,7 +162,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
             <th>N° Documento Cheque</th>
             <th>Monto Cheque</th>
             <th>Fecha Emisión Cheque</th>
-            <th>Fecha Depósito Cheque</th>
+            <!-- <th>Fecha Depósito Cheque</th> -->
             <th>N° Cta Corriente</th>
             <th>Valor Pagado</th>
             <th>Estado Cuota</th>
@@ -194,9 +194,9 @@ if (isset($_SESSION['pagoRegistrado'])) {
             <td>
                 <input type="date" class="form-control" name="fechaEmisionCheque[]" value="">
             </td>
-            <td>
+            <!-- <td>
                 <input type="date" class="form-control" name="fechaDepositoCheque[]" value="">
-            </td>
+            </td> -->
             <td>
                 <input type="number" class="form-control numeroCtaCte" name="nCtaCteCopia[]" value="" readonly>
             </td>
@@ -207,7 +207,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
                         <?php elseif ($pago['ESTADO_PAGO'] == 1): ?>
                             VENCIDA
                         <?php elseif ($pago['ESTADO_PAGO'] == 2): ?>
-                            PAGADA
+                            DOCUMENTADA
                         <?php elseif ($pago['ESTADO_PAGO'] == 3): ?>
                             DOCUMENTADA
                         <?php endif; ?>
@@ -238,7 +238,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
             <th>N° Documento Cheque</th>
             <th>Monto Cheque</th>
             <th>Fecha Emisión Cheque</th>
-            <th>Fecha Depósito Cheque</th>
+            <!-- <th>Fecha Depósito Cheque</th> -->
             <th>N° Cta Corriente</th>
             <th>Valor Pagado</th>
             <th>Estado Cuota</th>
@@ -270,9 +270,9 @@ if (isset($_SESSION['pagoRegistrado'])) {
             <td>
                 <input type="date" class="form-control" name="fechaEmisionCheque[]" value="">
             </td>
-            <td>
+            <!-- <td>
                 <input type="date" class="form-control" name="fechaDepositoCheque[]" value="">
-            </td>
+            </td> -->
             <td>
                 <input type="number" class="form-control numeroCtaCte" name="nCtaCteCopia[]" value="" readonly>
             </td>
@@ -283,7 +283,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
                         <?php elseif ($pago['ESTADO_PAGO'] == 1): ?>
                             VENCIDA
                         <?php elseif ($pago['ESTADO_PAGO'] == 2): ?>
-                            PAGADA
+                            DOCUMENTADA
                         <?php elseif ($pago['ESTADO_PAGO'] == 3): ?>
                             DOCUMENTADA
                         <?php endif; ?>
@@ -539,7 +539,7 @@ document.addEventListener('DOMContentLoaded', function() {
         var nDocumento = fila.querySelector('[name="nDocumentoCheque[]"]').value;
         var monto = parseFloat(fila.querySelector('[name="montoCheque[]"]').value); // Obtener el valor del monto
         var fechaEmision = fila.querySelector('[name="fechaEmisionCheque[]"]').value;
-        var fechaDeposito = fila.querySelector('[name="fechaDepositoCheque[]"]').value;
+        /* var fechaDeposito = fila.querySelector('[name="fechaDepositoCheque[]"]').value; */
         var numeroCtaCte = fila.querySelector('.numeroCtaCte').value; // Captura el valor del número de cuenta corriente
 
 
@@ -553,7 +553,7 @@ document.addEventListener('DOMContentLoaded', function() {
             monto: monto,
             valorPagado: monto, // Agregar el monto a los datos del pago
             fechaEmision: fechaEmision,
-            fechaDeposito: fechaDeposito,
+            /* fechaDeposito: fechaDeposito, */
             fechaCobro: fechaCobro.toISOString().split('T')[0],
             ano: new Date().getFullYear(),
             fechaPago: new Date().toISOString().split('T')[0],
@@ -574,7 +574,7 @@ document.addEventListener('DOMContentLoaded', function() {
             'Número Documento': nDocumento,
             'Monto Cheque': monto,
             'Fecha Emisión': fechaEmision,
-            'Fecha Depósito': fechaDeposito
+     /*        'Fecha Depósito': fechaDeposito */
         });
     });
 
@@ -604,8 +604,8 @@ function generarPDF(datos) {
 
     doc.autoTable({ 
         startY: 35,
-        head: [['Cuota', 'Fecha Vencimiento', 'Monto Cuota', 'Banco Cheque', 'Número Documento', 'Monto Cheque', 'Fecha Emisión', 'Fecha Depósito']],
-        body: datos.map(pago => [pago['Cuota'], pago['Fecha Vencimiento'], pago['Monto Cuota'], pago['Banco Cheque'], pago['Número Documento'], pago['Monto Cheque'], pago['Fecha Emisión'], pago['Fecha Depósito']])
+        head: [['Cuota', 'Fecha Vencimiento', 'Monto Cuota', 'Banco Cheque', 'Número Documento', 'Monto Cheque', 'Fecha Emisión'/* , 'Fecha Depósito' */]],
+        body: datos.map(pago => [pago['Cuota'], pago['Fecha Vencimiento'], pago['Monto Cuota'], pago['Banco Cheque'], pago['Número Documento'], pago['Monto Cheque'], pago['Fecha Emisión']/* , pago['Fecha Depósito' */]])
     });
 
     // Guardar el PDF

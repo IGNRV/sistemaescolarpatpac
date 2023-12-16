@@ -10,9 +10,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     try {
         foreach ($data->pagos as $pago) {
+            $fechaEmision = new DateTime($pago->fechaEmision);
+            $fechaCobro = $fechaEmision->modify('+1 day')->format('Y-m-d');
             $stmt = $conn->prepare("INSERT INTO DETALLES_TRANSACCION 
-                (ANO, VALOR, FECHA_PAGO, MEDIO_DE_PAGO, ESTADO, TIPO_DOCUMENTO, NUMERO_DOCUMENTO, FECHA_EMISION, FECHA_COBRO, BANCO, N_CUOTAS, ID_PAGO, CTA_CORRIENTE) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        (ANO, VALOR, FECHA_PAGO, MEDIO_DE_PAGO, ESTADO, TIPO_DOCUMENTO, NUMERO_DOCUMENTO, FECHA_EMISION, FECHA_COBRO, BANCO, N_CUOTAS, ID_PAGO, CTA_CORRIENTE) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             $stmt->bind_param("idssisssssisi", 
                 $pago->ano,
                 $pago->monto,
@@ -22,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $pago->tipoDocumento,
                 $pago->nDocumento,
                 $pago->fechaEmision,
-                $pago->fechaCobro,
+                $fechaCobro,  // Usar la fecha calculada
                 $pago->banco,
                 $pago->nCuotas,
                 $pago->idPago,
