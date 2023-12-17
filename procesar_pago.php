@@ -7,6 +7,12 @@ if (!empty($data['pagos'])) {
     $adicionales = $data['adicionales'];
     $totalAPagar = $adicionales['montoEfectivo'] + $adicionales['montoPos'] + $adicionales['montoCheque'];
     $folioPago = obtenerUltimoFolioPago($conn);
+    $numeroDeCuotas = count($data['pagos']);
+
+    // Calcular el monto a distribuir por cada medio de pago
+    $montoDistribuidoEfectivo = $adicionales['montoEfectivo'] / $numeroDeCuotas;
+    $montoDistribuidoPos = $adicionales['montoPos'] / $numeroDeCuotas;
+    $montoDistribuidoCheque = $adicionales['montoCheque'] / $numeroDeCuotas;
 
     foreach ($data['pagos'] as $pago) {
         if ($totalAPagar <= 0) {
@@ -30,14 +36,14 @@ if (!empty($data['pagos'])) {
         $stmtUpdate->execute();
 
         // Insertar los detalles de transacción para cada medio de pago
-        if ($adicionales['montoEfectivo'] > 0) {
-            insertarDetalleTransaccion($pago, 'EFECTIVO', $adicionales['montoEfectivo'], $adicionales, $folioPago, $conn);
+        if ($montoDistribuidoEfectivo > 0) {
+            insertarDetalleTransaccion($pago, 'EFECTIVO', $montoDistribuidoEfectivo, $adicionales, $folioPago, $conn);
         }
-        if ($adicionales['montoPos'] > 0) {
-            insertarDetalleTransaccion($pago, 'POS', $adicionales['montoPos'], $adicionales, $folioPago, $conn);
+        if ($montoDistribuidoPos > 0) {
+            insertarDetalleTransaccion($pago, 'POS', $montoDistribuidoPos, $adicionales, $folioPago, $conn);
         }
-        if ($adicionales['montoCheque'] > 0) {
-            insertarDetalleTransaccion($pago, 'CHEQUE', $adicionales['montoCheque'], $adicionales, $folioPago, $conn);
+        if ($montoDistribuidoCheque > 0) {
+            insertarDetalleTransaccion($pago, 'CHEQUE', $montoDistribuidoCheque, $adicionales, $folioPago, $conn);
         }
 
         $totalAPagar -= $montoAPagar;
