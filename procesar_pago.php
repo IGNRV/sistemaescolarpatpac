@@ -5,20 +5,13 @@ $data = json_decode(file_get_contents('php://input'), true);
 
 if (!empty($data['pagos'])) {
     $adicionales = $data['adicionales'];
-    $totalAPagar = $adicionales['montoEfectivo'] + $adicionales['montoPos'] + $adicionales['montoCheque'];
     $folioPago = obtenerUltimoFolioPago($conn);
-    $numeroDeCuotas = count($data['pagos']);
 
-    // Calcular el monto a distribuir por cada medio de pago
-    $montoDistribuidoEfectivo = $adicionales['montoEfectivo'] / $numeroDeCuotas;
-    $montoDistribuidoPos = $adicionales['montoPos'] / $numeroDeCuotas;
-    $montoDistribuidoCheque = $adicionales['montoCheque'] / $numeroDeCuotas;
+    $montoDisponibleEfectivo = $adicionales['montoEfectivo'];
+    $montoDisponiblePos = $adicionales['montoPos'];
+    $montoDisponibleCheque = $adicionales['montoCheque'];
 
     foreach ($data['pagos'] as $pago) {
-        if ($totalAPagar <= 0) {
-            break; // No hay más fondos para distribuir.
-        }
-
         // Obtener los datos del pago
         $stmtSelect = $conn->prepare("SELECT VALOR_A_PAGAR, VALOR_PAGADO FROM HISTORIAL_PAGOS WHERE ID_PAGO = ?");
         $stmtSelect->bind_param("i", $pago['idPago']);
@@ -26,32 +19,37 @@ if (!empty($data['pagos'])) {
         $resultado = $stmtSelect->get_result();
         $filaPago = $resultado->fetch_assoc();
 
-        $montoAPagar = min($filaPago['VALOR_A_PAGAR'] - $filaPago['VALOR_PAGADO'], $totalAPagar);
-        $nuevoValorPagado = $filaPago['VALOR_PAGADO'] + $montoAPagar;
+        $montoRestante = $filaPago['VALOR_A_PAGAR'] - $filaPago['VALOR_PAGADO'];
+        
+        // Calcular montos a pagar con cada medio de pago
+        $pagoEfectivo = min($montoRestante, $montoDisponibleEfectivo);
+        $montoRestante -= $pagoEfectivo;
+        $montoDisponibleEfectivo -= $pagoEfectivo;
 
-        // Actualizar VALOR_PAGADO y posiblemente ESTADO_PAGO
-        $estadoPago = ($nuevoValorPagado >= $filaPago['VALOR_A_PAGAR']) ? 2 : 1; // 2 = Pagado, 1 = Pendiente
+        $pagoPos = min($montoRestante, $montoDisponiblePos);
+        $montoRestante -= $pagoPos;
+        $montoDisponiblePos -= $pagoPos;
+
+        $pagoCheque = min($montoRestante, $montoDisponibleCheque);
+        $montoDisponibleCheque -= $pagoCheque;
+
+        // Insertar detalles en DETALLES_TRANSACCION
+        if ($pagoEfectivo > 0) {
+            insertarDetalleTransaccion($pago, 'EFECTIVO', $pagoEfectivo, $adicionales, $folioPago, $conn);
+        }
+        if ($pagoPos > 0) {
+            insertarDetalleTransaccion($pago, 'POS', $pagoPos, $adicionales, $folioPago, $conn);
+        }
+        if ($pagoCheque > 0) {
+            insertarDetalleTransaccion($pago, 'CHEQUE', $pagoCheque, $adicionales, $folioPago, $conn);
+        }
+
+        // Actualizar HISTORIAL_PAGOS
+        $nuevoValorPagado = $filaPago['VALOR_PAGADO'] + $pagoEfectivo + $pagoPos + $pagoCheque;
+        $estadoPago = ($nuevoValorPagado >= $filaPago['VALOR_A_PAGAR']) ? 2 : 1;
         $stmtUpdate = $conn->prepare("UPDATE HISTORIAL_PAGOS SET VALOR_PAGADO = ?, ESTADO_PAGO = ? WHERE ID_PAGO = ?");
         $stmtUpdate->bind_param("dii", $nuevoValorPagado, $estadoPago, $pago['idPago']);
         $stmtUpdate->execute();
-
-        // Insertar los detalles de transacción para cada medio de pago
-        if ($montoDistribuidoEfectivo > 0) {
-            insertarDetalleTransaccion($pago, 'EFECTIVO', $montoDistribuidoEfectivo, $adicionales, $folioPago, $conn);
-        }
-        if ($montoDistribuidoPos > 0) {
-            insertarDetalleTransaccion($pago, 'POS', $montoDistribuidoPos, $adicionales, $folioPago, $conn);
-        }
-        if ($montoDistribuidoCheque > 0) {
-            insertarDetalleTransaccion($pago, 'CHEQUE', $montoDistribuidoCheque, $adicionales, $folioPago, $conn);
-        }
-
-        $totalAPagar -= $montoAPagar;
-
-        // Si el total a pagar llega a 0, salir del bucle
-        if ($totalAPagar <= 0) {
-            break;
-        }
     }
 
     echo json_encode(['mensaje' => 'Pago registrado con éxito.', 'folioPago' => $folioPago]);
