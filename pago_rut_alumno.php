@@ -44,7 +44,8 @@ if (isset($_POST['btnBuscarAlumno'])) {
         hp.FECHA_EMISION,
         hp.FECHA_COBRO,
         hp.ID_PERIODO_ESCOLAR,
-        hp.CODIGO_PRODUCTO
+        hp.CODIGO_PRODUCTO,
+        hp.VALOR_PAGADO
     FROM
         c1occsyspay.HISTORIAL_PAGOS AS hp
         LEFT JOIN
@@ -135,8 +136,8 @@ if (isset($_POST['btnBuscarAlumno'])) {
                 <th>N° Cuota</th>
                 <th>Fecha Vencimiento</th>
                 <th>Monto</th>
-<!--                 <th>Medio de Pago</th>
- -->                <th>Fecha de Pago</th>
+                <th>Valor Pagado</th>
+                <th>Fecha de Pago</th>
                 <th>Estado</th>
                 <th>Seleccione Valor a Pagar</th>
             </tr>
@@ -149,6 +150,8 @@ if (isset($_POST['btnBuscarAlumno'])) {
                     <td><?php echo $index + 1; ?></td>
                     <td><?php echo htmlspecialchars($pago['FECHA_VENCIMIENTO']); ?></td>
                     <td><?php echo htmlspecialchars($pago['VALOR_A_PAGAR']); ?></td>
+                    <td><?php echo htmlspecialchars($pago['VALOR_PAGADO']); ?></td>
+
 <!--                     <td><?php echo htmlspecialchars($pago['MEDIO_PAGO']); ?></td>
  -->                    <td><?php echo htmlspecialchars($pago['FECHA_PAGO']); ?></td>
                     <td>
@@ -186,7 +189,7 @@ if (isset($_POST['btnBuscarAlumno'])) {
                 <th>N° Cuota</th>
                 <th>Fecha Vencimiento</th>
                 <th>Monto</th>
-                <!-- <th>Medio de Pago</th> -->
+                <th>Valor Pagado</th>
                 <th>Fecha de Pago</th>
                 <th>Estado</th>
                 <th>Seleccione Valor a Pagar</th>
@@ -200,6 +203,7 @@ if (isset($_POST['btnBuscarAlumno'])) {
                     <td><?php echo $index + 1; ?></td>
                     <td><?php echo htmlspecialchars($pago['FECHA_VENCIMIENTO']); ?></td>
                     <td><?php echo htmlspecialchars($pago['VALOR_A_PAGAR']); ?></td>
+                    <td><?php echo htmlspecialchars($pago['VALOR_PAGADO']); ?></td>
                     <!-- <td><?php echo htmlspecialchars($pago['MEDIO_PAGO']); ?></td> -->
                     <td><?php echo htmlspecialchars($pago['FECHA_PAGO']); ?></td>
                     <td>

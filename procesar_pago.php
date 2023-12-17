@@ -100,29 +100,25 @@ function insertarDetalleTransaccion($pago, $tipoDocumento, $monto, $adicionales,
 }
 
 function actualizarHistorialPagos($idPago, $totalPagado, $conn, $tipoDocumento) {
-    // Primero, obtenemos el valor actual a pagar
-    $stmtSelect = $conn->prepare("SELECT VALOR_A_PAGAR FROM HISTORIAL_PAGOS WHERE ID_PAGO = ?");
+    // Obtener VALOR_A_PAGAR y VALOR_PAGADO actuales
+    $stmtSelect = $conn->prepare("SELECT VALOR_A_PAGAR, VALOR_PAGADO FROM HISTORIAL_PAGOS WHERE ID_PAGO = ?");
     $stmtSelect->bind_param("i", $idPago);
     $stmtSelect->execute();
     $resultado = $stmtSelect->get_result();
     $fila = $resultado->fetch_assoc();
     $valorAPagar = $fila['VALOR_A_PAGAR'];
+    $valorPagado = $fila['VALOR_PAGADO'];
 
-    // Restamos el total pagado del valor a pagar
-    $nuevoValorAPagar = $valorAPagar - $totalPagado;
+    // Sumar totalPagado a valorPagado
+    $nuevoValorPagado = $valorPagado + $totalPagado;
 
-    // Preparamos la consulta de actualización
-    $stmtUpdate = $conn->prepare("UPDATE HISTORIAL_PAGOS SET VALOR_A_PAGAR = ?, ESTADO_PAGO = ?, FECHA_PAGO = ? WHERE ID_PAGO = ?");
+    // Determinar estado del pago
+    $estadoPago = ($nuevoValorPagado >= $valorAPagar) ? 2 : 1; // 2 = Pagado, 1 = Pendiente
 
-    // Determinamos el estado de pago
-    if ($tipoDocumento == 'CHEQUE' && $nuevoValorAPagar == 0) {
-        $estadoPago = 3; // Estado específico para cheques con valor a pagar igual a 0
-    } else {
-        $estadoPago = ($nuevoValorAPagar == 0) ? 2 : 1; // Estado pagado (2) o pendiente (1)
-    }
-
+    // Preparar la consulta de actualización
+    $stmtUpdate = $conn->prepare("UPDATE HISTORIAL_PAGOS SET VALOR_PAGADO = ?, ESTADO_PAGO = ?, FECHA_PAGO = ? WHERE ID_PAGO = ?");
     $fechaActual = date('Y-m-d');
-    $stmtUpdate->bind_param("iisi", $nuevoValorAPagar, $estadoPago, $fechaActual, $idPago);
+    $stmtUpdate->bind_param("iisi", $nuevoValorPagado, $estadoPago, $fechaActual, $idPago);
     $stmtUpdate->execute();
     $stmtUpdate->close();
 }
