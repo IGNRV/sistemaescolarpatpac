@@ -5,6 +5,20 @@ $saldoPeriodoAnterior = [];
 $cuotasPeriodoActual = [];
 $mensaje = '';
 
+// Recolectar los montos de los diferentes medios de pago
+$montoEfectivo = isset($_POST['montoEfectivo']) ? (float) $_POST['montoEfectivo'] : 0;
+$montoPos = isset($_POST['montoPos']) ? (float) $_POST['montoPos'] : 0;
+$montoCheque = isset($_POST['montoCheque']) ? (float) $_POST['montoCheque'] : 0;
+
+// Recolectar los IDs de pago seleccionados
+$idsPagosSeleccionados = isset($_POST['seleccionarPago']) ? $_POST['seleccionarPago'] : [];
+
+
+var_dump($idsPagosSeleccionados);
+
+// Calcular el monto total a pagar
+$totalAPagar = $montoEfectivo + $montoPos + $montoCheque;
+
 $bancos = [];
 $stmtBancos = $conn->prepare("SELECT NOMBRE_BANCO FROM BANCOS");
 $stmtBancos->execute();

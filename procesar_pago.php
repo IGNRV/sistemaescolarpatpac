@@ -5,11 +5,38 @@ $data = json_decode(file_get_contents('php://input'), true);
 
 if (!empty($data['pagos'])) {
     $adicionales = $data['adicionales'];
+    $totalAPagar = $adicionales['montoEfectivo'] + $adicionales['montoPos'] + $adicionales['montoCheque'];
     $folioPago = obtenerUltimoFolioPago($conn);
 
     foreach ($data['pagos'] as $pago) {
-        procesarPago($pago, $adicionales, $folioPago, $conn);
+        if ($totalAPagar <= 0) {
+            break; // No hay más fondos para distribuir.
+        }
+
+        // Obtener los datos del pago
+        $stmtSelect = $conn->prepare("SELECT VALOR_A_PAGAR, VALOR_PAGADO FROM HISTORIAL_PAGOS WHERE ID_PAGO = ?");
+        $stmtSelect->bind_param("i", $pago['idPago']);
+        $stmtSelect->execute();
+        $resultado = $stmtSelect->get_result();
+        $filaPago = $resultado->fetch_assoc();
+
+        $montoAPagar = min($filaPago['VALOR_A_PAGAR'] - $filaPago['VALOR_PAGADO'], $totalAPagar);
+        $nuevoValorPagado = $filaPago['VALOR_PAGADO'] + $montoAPagar;
+
+        // Actualizar VALOR_PAGADO y posiblemente ESTADO_PAGO
+        $estadoPago = ($nuevoValorPagado >= $filaPago['VALOR_A_PAGAR']) ? 2 : 1; // 2 = Pagado, 1 = Pendiente
+        $stmtUpdate = $conn->prepare("UPDATE HISTORIAL_PAGOS SET VALOR_PAGADO = ?, ESTADO_PAGO = ? WHERE ID_PAGO = ?");
+        $stmtUpdate->bind_param("dii", $nuevoValorPagado, $estadoPago, $pago['idPago']);
+        $stmtUpdate->execute();
+
+        $totalAPagar -= $montoAPagar;
+
+        // Si el total a pagar llega a 0, salir del bucle
+    if ($totalAPagar <= 0) {
+        break;
     }
+    }
+
     echo json_encode(['mensaje' => 'Pago registrado con éxito.', 'folioPago' => $folioPago]);
 } else {
     echo json_encode(['mensaje' => 'No hay pagos para procesar.']);
