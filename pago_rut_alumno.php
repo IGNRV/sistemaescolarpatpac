@@ -605,16 +605,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
     pagosSeleccionados.forEach(function(checkbox, index) {
         var fila = checkbox.closest('tr');
-        var cuota = fila.cells[0].innerText;
-        var fechaVencimiento = fila.cells[1].innerText;
-        var monto = parseFloat(fila.cells[2].innerText);
-        var fechaPago = fila.cells[4].innerText; // Añadir fecha de pago
-        var estado = fila.cells[5].innerText; // Añadir estado del pago
+        var cuota = fila.cells[0].innerText; // N° Cuota
+        var fechaVencimiento = fila.cells[1].innerText; // Fecha Vencimiento
+        var valorAPagar = parseFloat(fila.cells[2].innerText); // VALOR_A_PAGAR
+        var valorPagado = parseFloat(fila.cells[3].innerText); // VALOR_PAGADO
+        var fechaPago = fila.cells[4].innerText; // Fecha de Pago
+        var estado = fila.cells[5].innerText; // Estado
 
-        totalAPagar += monto;
+        totalAPagar += valorAPagar;
 
-        // Agregar datos adicionales al array
-        datosParaPDF.push([cuota, fechaVencimiento, monto.toFixed(0), fechaPago, estado]);
+
+        // Agregar datos al array para el PDF
+        datosParaPDF.push([cuota, fechaVencimiento, valorAPagar.toFixed(0), valorPagado.toFixed(0), fechaPago, estado]);
     });
 
     doc.setFontSize(18);
@@ -643,7 +645,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     doc.autoTable({
         startY: posicionInicioTabla,
-        head: [['Cuota', 'Fecha Vencimiento', 'Monto', 'Fecha de Pago', 'Estado']],
+        head: [['Cuota', 'Fecha Vencimiento', 'Valor a Pagar', 'Valor Pagado Anteriormente', 'Fecha de Pago', 'Estado']],
         body: datosParaPDF
     });
 
