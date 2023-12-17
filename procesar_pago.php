@@ -29,18 +29,30 @@ if (!empty($data['pagos'])) {
         $stmtUpdate->bind_param("dii", $nuevoValorPagado, $estadoPago, $pago['idPago']);
         $stmtUpdate->execute();
 
+        // Insertar los detalles de transacción para cada medio de pago
+        if ($adicionales['montoEfectivo'] > 0) {
+            insertarDetalleTransaccion($pago, 'EFECTIVO', $adicionales['montoEfectivo'], $adicionales, $folioPago, $conn);
+        }
+        if ($adicionales['montoPos'] > 0) {
+            insertarDetalleTransaccion($pago, 'POS', $adicionales['montoPos'], $adicionales, $folioPago, $conn);
+        }
+        if ($adicionales['montoCheque'] > 0) {
+            insertarDetalleTransaccion($pago, 'CHEQUE', $adicionales['montoCheque'], $adicionales, $folioPago, $conn);
+        }
+
         $totalAPagar -= $montoAPagar;
 
         // Si el total a pagar llega a 0, salir del bucle
-    if ($totalAPagar <= 0) {
-        break;
-    }
+        if ($totalAPagar <= 0) {
+            break;
+        }
     }
 
     echo json_encode(['mensaje' => 'Pago registrado con éxito.', 'folioPago' => $folioPago]);
 } else {
     echo json_encode(['mensaje' => 'No hay pagos para procesar.']);
 }
+
 
 function procesarPago($pago, $adicionales, $folioPago, $conn) {
     $folioPago = obtenerUltimoFolioPago($conn);

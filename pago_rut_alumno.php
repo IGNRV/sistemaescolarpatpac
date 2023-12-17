@@ -14,8 +14,6 @@ $montoCheque = isset($_POST['montoCheque']) ? (float) $_POST['montoCheque'] : 0;
 $idsPagosSeleccionados = isset($_POST['seleccionarPago']) ? $_POST['seleccionarPago'] : [];
 
 
-var_dump($idsPagosSeleccionados);
-
 // Calcular el monto total a pagar
 $totalAPagar = $montoEfectivo + $montoPos + $montoCheque;
 
