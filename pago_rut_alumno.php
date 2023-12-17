@@ -472,6 +472,24 @@ document.addEventListener('DOMContentLoaded', function() {
     var montoEfectivo = document.getElementById('montoEfectivo');
     var totalAPagarElement = document.getElementById('totalAPagar');
     var tipoDocumento = document.getElementById('tipoDocumento');
+    var tipoTarjetaPosSelect = document.getElementById('tipoTarjetaPos');
+    var cuotasPosInput = document.getElementById('cuotasPos');
+
+    // Función para manejar el cambio en la selección del tipo de tarjeta
+    function handleTipoTarjetaChange() {
+        if (tipoTarjetaPosSelect.value === 'debito') {
+            cuotasPosInput.value = '1'; // Establece el valor a 1
+            cuotasPosInput.disabled = true; // Desactiva el campo
+        } else {
+            cuotasPosInput.disabled = false; // Reactiva el campo para otros tipos de tarjeta
+        }
+    }
+
+    // Agrega el controlador de eventos para cuando cambie la selección del tipo de tarjeta
+    tipoTarjetaPosSelect.addEventListener('change', handleTipoTarjetaChange);
+
+    // Llamar a la función inicialmente en caso de que la selección por defecto sea 'debito'
+    handleTipoTarjetaChange();
 
     btnRegistrarPago.addEventListener('click', function() {
         var montoEfectivo = parseFloat(document.getElementById('montoEfectivo').value || 0);
