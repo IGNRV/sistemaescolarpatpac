@@ -568,20 +568,29 @@ document.addEventListener('DOMContentLoaded', function() {
 
         // Función para calcular el total a pagar y actualizarlo cuando cambien las selecciones
         function calcularTotalAPagar() {
-            var totalAPagar = 0;
-            checkboxes.forEach(function(checkbox) {
-                if (checkbox.checked) {
-                    totalAPagar += parseFloat(checkbox.value);
-                }
-            });
+        var checkboxes = document.querySelectorAll('.seleccionarPago:checked');
+        var totalAPagar = 0;
+        checkboxes.forEach(function(checkbox) {
+            var fila = checkbox.closest('tr');
+            var valorAPagar = parseFloat(fila.cells[2].innerText); // VALOR_A_PAGAR
+            var valorPagado = parseFloat(fila.cells[3].innerText) || 0; // VALOR_PAGADO, o 0 si está vacío
 
-            // Actualizar el elemento en el HTML
-            var totalAPagarElement = document.getElementById('totalAPagar');
-            totalAPagarElement.textContent = 'Total a Pagar $' + totalAPagar.toFixed(0);
-        }
+            totalAPagar += (valorAPagar - valorPagado); // Suma la diferencia
+        });
 
-        // Llamar a la función al cargar la página y cuando cambie una selección
-        calcularTotalAPagar();
+        // Actualizar el elemento en el HTML
+        var totalAPagarElement = document.getElementById('totalAPagar');
+        totalAPagarElement.textContent = 'Total a Pagar $' + totalAPagar.toFixed(0);
+    }
+
+    // Agregar controlador de eventos a cada checkbox de pago
+    var checkboxesPago = document.querySelectorAll('.seleccionarPago');
+    checkboxesPago.forEach(function(checkbox) {
+        checkbox.addEventListener('change', calcularTotalAPagar);
+    });
+
+    // Llamar a la función al cargar la página para establecer el total inicial
+    calcularTotalAPagar();
         checkboxes.forEach(function(checkbox) {
             checkbox.addEventListener('change', calcularTotalAPagar);
         });
