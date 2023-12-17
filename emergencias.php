@@ -44,8 +44,15 @@ function buscarDatosPorNombre($conn, $idAlumno) {
 }
 
 function buscarAntecedentes($conn, $rutAlumno) {
-    $stmt = $conn->prepare("SELECT ID_ANTECEDENTE, TIPO_ANTECEDENTE, DESCRIPCION_ANTECEDENTE, FECHA_INGRESO FROM ANTECEDENTES_EMERGENCIA WHERE RUT_ALUMNO = ? AND DELETE_FLAG = 0");
+    $stmt = $conn->prepare("SELECT ID_ANTECEDENTE, TIPO_ANTECEDENTE, DESCRIPCION_ANTECEDENTE, FECHA_INGRESO, ID_ALUMNO FROM ANTECEDENTES_EMERGENCIA WHERE RUT_ALUMNO = ? AND DELETE_FLAG = 0");
     $stmt->bind_param("s", $rutAlumno);
+    $stmt->execute();
+    return $stmt->get_result();
+}
+
+function buscarAntecedentesPorNombre($conn, $idAlumno) {
+    $stmt = $conn->prepare("SELECT ID_ANTECEDENTE, TIPO_ANTECEDENTE, DESCRIPCION_ANTECEDENTE, FECHA_INGRESO FROM ANTECEDENTES_EMERGENCIA WHERE ID_ALUMNO = ? AND DELETE_FLAG = 0");
+    $stmt->bind_param("s", $idAlumno);
     $stmt->execute();
     return $stmt->get_result();
 }
@@ -79,7 +86,7 @@ if (isset($_POST['buscarAlumnoNombre'])) {
         $mensaje = "Alumno y contacto de emergencia encontrados.";
 
         // Buscar antecedentes médicos del alumno encontrado
-        $resultadoAntecedentes = buscarAntecedentes($conn, $contactoEmergencia['RUT_ALUMNO']);
+        $resultadoAntecedentes = buscarAntecedentesPorNombre($conn, $contactoEmergencia['ID_ALUMNO']);
     } else {
         $mensaje = "Alumno no encontrado.";
         $resultadoAntecedentes = null;
@@ -92,16 +99,17 @@ if (isset($_POST['buscarAlumnoNombre'])) {
 // Procesar el formulario de agregar antecedentes
 if (isset($_POST['agregar_antecedentes'])) {
     // Asegúrate de que el RUT del alumno no sea null
-    if (!empty($_POST['rutAlumno'])) {
+    if (!empty($_POST['idAlumno'])) {
         $rutAlumno = $_POST['rutAlumno'];
         $tipoAntecedente = $_POST['categoria'];
         $descripcionAntecedente = $_POST['descripcion'];
         $fechaIngreso = $_POST['fecha'];
         $periodoEscolarId = $_POST['periodoEscolar'];
+        $idAlumno = $_POST['idAlumno'];
 
         // Insertar los datos en la tabla ANTECEDENTES_EMERGENCIA
-        $stmtInsertarAntecedentes = $conn->prepare("INSERT INTO ANTECEDENTES_EMERGENCIA (RUT_ALUMNO, TIPO_ANTECEDENTE, DESCRIPCION_ANTECEDENTE, FECHA_INGRESO, PERIODO_ESCOLAR, DELETE_FLAG) VALUES (?, ?, ?, ?, ?, 0)");
-        $stmtInsertarAntecedentes->bind_param("ssssi", $rutAlumno, $tipoAntecedente, $descripcionAntecedente, $fechaIngreso, $periodoEscolarId);
+        $stmtInsertarAntecedentes = $conn->prepare("INSERT INTO ANTECEDENTES_EMERGENCIA (ID_ALUMNO, RUT_ALUMNO, TIPO_ANTECEDENTE, DESCRIPCION_ANTECEDENTE, FECHA_INGRESO, PERIODO_ESCOLAR, DELETE_FLAG) VALUES (?, ?, ?, ?, ?, ?, 0)");
+        $stmtInsertarAntecedentes->bind_param("issssi", $idAlumno, $rutAlumno, $tipoAntecedente, $descripcionAntecedente, $fechaIngreso, $periodoEscolarId);
         $stmtInsertarAntecedentes->execute();
 
         if ($stmtInsertarAntecedentes->affected_rows > 0) {
@@ -303,6 +311,8 @@ $stmtAlumnos->close();
 </div>
 <form method="post">
     <input type="hidden" name="rutAlumno" value="<?php echo htmlspecialchars($rutAlumno); ?>">
+    <input type="hidden" name="idAlumno" value="<?php echo htmlspecialchars($contactoEmergencia['ID_ALUMNO'] ?? ''); ?>">
+
     <!-- Los demás campos de tu formulario -->
     <button type="submit" class="btn btn-primary btn-block" name="agregar_antecedentes">AGREGAR ANTECEDENTES MÉDICOS</button>
 </form>

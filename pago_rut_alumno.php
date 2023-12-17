@@ -143,6 +143,8 @@ if (isset($_POST['btnBuscarAlumno'])) {
         </thead>
         <tbody>
             <?php foreach ($saldoPeriodoAnterior as $index => $pago): ?>
+                <?php if ($pago['ESTADO_PAGO'] != 2): // Omitir cuotas pagadas ?>
+
                 <tr>
                     <td><?php echo $index + 1; ?></td>
                     <td><?php echo htmlspecialchars($pago['FECHA_VENCIMIENTO']); ?></td>
@@ -168,6 +170,8 @@ if (isset($_POST['btnBuscarAlumno'])) {
                         <?php endif; ?>
                     </td>
                 </tr>
+                <?php endif; ?>
+
             <?php endforeach; ?>
         </tbody>
     </table>
@@ -190,6 +194,8 @@ if (isset($_POST['btnBuscarAlumno'])) {
         </thead>
         <tbody>
             <?php foreach ($cuotasPeriodoActual as $index => $pago): ?>
+                <?php if ($pago['ESTADO_PAGO'] != 2): // Omitir cuotas pagadas ?>
+
                 <tr>
                     <td><?php echo $index + 1; ?></td>
                     <td><?php echo htmlspecialchars($pago['FECHA_VENCIMIENTO']); ?></td>
@@ -215,6 +221,8 @@ if (isset($_POST['btnBuscarAlumno'])) {
                         <?php endif; ?>
                     </td>
                 </tr>
+                <?php endif; ?>
+
             <?php endforeach; ?>
         </tbody>
     </table>
@@ -604,20 +612,45 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 
-document.getElementById('tipoTarjetaPos').addEventListener('change', function() {
-        var tipoTarjetaSeleccionado = this.value;
-        var campoCuotas = document.getElementById('cuotasPos');
+document.addEventListener('DOMContentLoaded', function() {
+    // Función para manejar los cambios en los checkboxes de una tabla
+    function handleCheckboxChangesInTable(tableSelector) {
+        var checkboxes = Array.from(document.querySelectorAll(tableSelector + ' .seleccionarPago'));
+        var lastCheckedIndex = null;
 
-        if (tipoTarjetaSeleccionado === 'debito') {
-            // Si se selecciona tarjeta débito, establecer cuotas a 1 y bloquear el campo
-            campoCuotas.value = '1';
-            campoCuotas.disabled = true;
-        } else {
-            // Si se selecciona otra opción, desbloquear el campo y limpiarlo
-            campoCuotas.disabled = false;
-            campoCuotas.value = '';
-        }
-    });
+        checkboxes.forEach(function(checkbox, index) {
+            checkbox.addEventListener('change', function() {
+                if (checkbox.checked) {
+                    lastCheckedIndex = index;
+                    // Habilitar el siguiente checkbox
+                    if (index + 1 < checkboxes.length) {
+                        checkboxes[index + 1].disabled = false;
+                    }
+                } else {
+                    if (index <= lastCheckedIndex) {
+                        // Deshabilitar todos los checkboxes posteriores
+                        for (var i = index + 1; i < checkboxes.length; i++) {
+                            checkboxes[i].checked = false;
+                            checkboxes[i].disabled = true;
+                        }
+                        lastCheckedIndex = index - 1;
+                    }
+                }
+            });
+
+            // Inicialmente, deshabilitar todos los checkboxes excepto el primero
+            if (index > 0) {
+                checkbox.disabled = true;
+            }
+        });
+    }
+
+    // Llamar a la función para cada tabla
+    handleCheckboxChangesInTable('#tablaSaldoPeriodoAnterior');
+    handleCheckboxChangesInTable('#tablaCuotasPeriodoActual');
+});
+
+// ... Resto de tu script ...
 
 
 </script>
