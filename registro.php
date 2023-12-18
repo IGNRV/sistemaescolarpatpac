@@ -67,37 +67,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <!-- Incluye Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        html, body {
-            height: 100%;
-        }
-        body {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
         .form-container {
-            max-width: 400px; /* Ancho máximo para el formulario */
+            padding: 20px; /* Espaciado interno para el formulario */
+            margin-top: 20px; /* Espaciado superior para separar del borde */
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Sombra para resaltar el formulario */
+            border-radius: 8px; /* Bordes redondeados */
         }
         .btn-custom {
-            width: 50%; /* Ancho personalizado para el botón */
+            width: 100%; /* Ancho total para dispositivos móviles */
         }
-        .modal-dialog {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
+        @media (min-width: 768px) {
+            .btn-custom {
+                width: auto; /* Ancho automático para tabletas y escritorio */
+            }
         }
-        .uppercase {
-        text-transform: uppercase;
-        }
-
     </style>
 </head>
 
 <body>
 <div class="container">
         <div class="row justify-content-center">
-            <div class="col-12 col-md-8 col-lg-6">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-6">
                 <div class="form-container">
                     <h2 class="text-center">Registro de Usuario</h2>
                     <form method="post" action="registro.php" class="mt-4">

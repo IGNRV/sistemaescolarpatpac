@@ -17,26 +17,26 @@ $EMAIL = $_SESSION['EMAIL'];
 $queryUsuario = "SELECT ID FROM USERS WHERE EMAIL = '$EMAIL'";
 $resultadoUsuario = $conn->query($queryUsuario);
 
-/* $id_usuario = '';
+$id_usuario = '';
 if ($resultadoUsuario->num_rows > 0) {
     $usuario = $resultadoUsuario->fetch_assoc();
-    $id_usuario = $usuario['id'];
+    $id_usuario = $usuario['ID'];
 
     // Consulta para obtener la foto del alumno
-    $queryFoto = "SELECT foto_de_alumno FROM alumno WHERE id_usuario = $id_usuario";
+    $queryFoto = "SELECT PHOTO FROM USERS WHERE ID = $id_usuario";
     $resultadoFoto = $conn->query($queryFoto);
 
     if ($resultadoFoto->num_rows > 0) {
         $fila = $resultadoFoto->fetch_assoc();
-        $nombre_foto = $fila['foto_de_alumno'] ? $fila['foto_de_alumno'] : '22_Profile.jpg';
+        $nombre_foto = $fila['PHOTO'] ? $fila['PHOTO'] : '22_Profile.jpg';
 
         // Construir la URL completa de la foto
-        $url_foto = "https://sistemaescolar.oralisisdataservice.cl/fperfil/$nombre_foto";
+        $url_foto = "https://antilen.pat-pac.cl/sistemaescolarstaging/fperfil/$nombre_foto";
         $foto_de_alumno = $url_foto;
     } else {
         // Asignar la foto de perfil por defecto si no hay foto en la base de datos
         $nombre_foto = "22_Profile.jpg";
-        $foto_de_alumno = "https://sistemaescolar.oralisisdataservice.cl/fperfil/$nombre_foto";
+        $foto_de_alumno = "https://antilen.pat-pac.cl/sistemaescolarstaging/fperfil/$nombre_foto";
     }
 }
 
@@ -45,16 +45,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["nueva_foto"])) {
     $nombre_foto = $_FILES["nueva_foto"]["name"];
     
     // Mover la nueva foto a la carpeta de perfil
-    move_uploaded_file($nombre_temporal, "/var/www/html/sistemaescolar/fperfil/$nombre_foto");
+    move_uploaded_file($nombre_temporal, "/var/www/html/sistemaescolarstaging/fperfil/$nombre_foto");
     
     // Actualizar el nombre de la foto en la base de datos
-    $queryActualizarFoto = "UPDATE alumno SET foto_de_alumno = '$nombre_foto' WHERE id_usuario = $id_usuario";
+    $queryActualizarFoto = "UPDATE USERS SET PHOTO = '$nombre_foto' WHERE ID = $id_usuario";
     $conn->query($queryActualizarFoto);
     
     // Redirigir para evitar reenvíos del formulario
     header("Location: bienvenido.php");
     exit;
-} */
+}
 include 'nav.php';
 ?>
 
@@ -111,13 +111,13 @@ include 'nav.php';
 <body>
     <div class="container mt-5 custom-container">
          <!-- Mostrar la foto de perfil del alumno -->
-         <!-- <form id="cambiarFotoForm" method="post" action="" enctype="multipart/form-data" style="display: none;">
+         <form id="cambiarFotoForm" method="post" action="" enctype="multipart/form-data" style="display: none;">
             <label for="nueva_foto">Cambiar foto de perfil:</label>
             <input type="file" name="nueva_foto" id="nueva_foto" style="display: none;">
             <button type="submit">Cargar Nueva Foto</button>
         </form>
 
-        <img id="fotoPerfil" src="<?php echo $foto_de_alumno; ?>" alt="Foto de Perfil" class="img-fluid" style="border-radius: 50%; max-width: 200px; margin: 20px auto; cursor: pointer;" onclick="document.getElementById('btnCambiarFoto').click();"> -->
+        <img id="fotoPerfil" src="<?php echo $foto_de_alumno; ?>" alt="Foto de Perfil" class="img-fluid" style="border-radius: 50%; max-width: 200px; margin: 20px auto; cursor: pointer;" onclick="document.getElementById('btnCambiarFoto').click();">
 
         <?php
         if (isset($_GET['page'])) {
