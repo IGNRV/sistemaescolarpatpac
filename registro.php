@@ -21,6 +21,17 @@ if (!isset($_SESSION['EMAIL'])) {
     }
 }
 
+$tiposUsuario = [];
+$queryTiposUsuario = "SELECT ID, NOMBRE_TIPO_USUARIO FROM TIPO_USUARIO";
+$resultadoTiposUsuario = $conn->query($queryTiposUsuario);
+
+if ($resultadoTiposUsuario->num_rows > 0) {
+    while ($fila = $resultadoTiposUsuario->fetch_assoc()) {
+        $tiposUsuario[] = $fila; // Ahora incluye tanto el ID como el nombre
+    }
+}
+
+
 $errorMsg = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -29,6 +40,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $correo_electronico = $conn->real_escape_string($_POST['correo_electronico']);
     $password = $conn->real_escape_string($_POST['password']);
     $confirmPassword = $conn->real_escape_string($_POST['confirmPassword']);
+    $tipoUsuarioId = $conn->real_escape_string($_POST['tipoUsuario']);
+
 
     if ($password === $confirmPassword) {
         $passwordEncriptada = password_hash($password, PASSWORD_DEFAULT); // Encriptación de la contraseña
@@ -41,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $errorMsg = "El usuario ya existe con ese correo electrónico.";
         } else {
             // Inserta el nuevo usuario en la base de datos
-            $insertUser = "INSERT INTO USERS (NAME, EMAIL, USERNAME, PASSWORD, PHOTO, STATUS) VALUES ('{$nombre}', '{$correo_electronico}', '{$usuario}', '{$passwordEncriptada}', '22_Profile.jpg', 'ACTIVO')";
+            $insertUser = "INSERT INTO USERS (NAME, EMAIL, USERNAME, PASSWORD, PHOTO, STATUS, TIPO_USUARIO) VALUES ('{$nombre}', '{$correo_electronico}', '{$usuario}', '{$passwordEncriptada}', '22_Profile.jpg', 'ACTIVO', '{$tipoUsuarioId}')";
             if ($conn->query($insertUser) === TRUE) {
                 header('Location: login.php');
                 exit;
@@ -103,6 +116,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <label for="email">Correo Electrónico:</label>
                             <input type="email" class="form-control" name="correo_electronico" value="<?php echo isset($_POST['correo_electronico']) ? htmlspecialchars($_POST['correo_electronico']) : ''; ?>" required>
                         </div>
+                        <div class="form-group">
+    <label for="tipoUsuario">Tipo de Usuario:</label>
+    <select class="form-control" name="tipoUsuario" id="tipoUsuario">
+        <?php foreach ($tiposUsuario as $tipo): ?>
+            <option value="<?php echo htmlspecialchars($tipo['ID']); ?>"><?php echo htmlspecialchars($tipo['NOMBRE_TIPO_USUARIO']); ?></option>
+        <?php endforeach; ?>
+    </select>
+</div>
+
                         <div class="form-group">
                             <label for="password">Contraseña:</label>
                             <input type="password" class="form-control" name="password" required>

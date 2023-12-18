@@ -68,6 +68,14 @@ if (!isset($_SESSION['EMAIL'])) {
     }
 }
 
+$tipoUsuarioActual = null;
+$queryTipoUsuario = "SELECT TIPO_USUARIO FROM USERS WHERE EMAIL = '$EMAIL'";
+$resultadoTipoUsuario = $conn->query($queryTipoUsuario);
+if ($resultadoTipoUsuario->num_rows > 0) {
+    $fila = $resultadoTipoUsuario->fetch_assoc();
+    $tipoUsuarioActual = $fila['TIPO_USUARIO'];
+}
+
 // Verifica si se ha enviado el formulario de búsqueda
 if (isset($_POST['buscarAlumno'])) {
     $rutAlumno = $_POST['rutAlumno'];
@@ -431,53 +439,53 @@ if (isset($_POST['buscarAlumnoNombre'])) {
         <!-- Agrega un campo oculto para enviar el estado actual -->
         <input type="hidden" name="rutAlumno" value="<?php echo $alumno['RUT_ALUMNO']; ?>">
     <input type="hidden" name="estadoActual" value="<?php echo $alumno['STATUS']; ?>">
-    <button type="submit" name="cambiarEstado">Cambiar Estado</button>
+    <button type="submit" name="cambiarEstado" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>Cambiar Estado</button>
     </div>
-                <div class="form-group">
+    <div class="form-group">
         <label>Nombre:</label>
-        <input type="text" class="form-control to-uppercase" name="name" value="<?php echo isset($alumno['NOMBRE']) ? $alumno['NOMBRE'] : ''; ?>">
+        <input type="text" class="form-control" name="name" value="<?php echo isset($alumno['NOMBRE']) ? $alumno['NOMBRE'] : ''; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
     </div>
                 <div class="form-group">
                     <label>Apellido Paterno:</label>
-                    <input type="text" class="form-control to-uppercase" name="ap_paterno" value="<?php echo isset($alumno['AP_PATERNO']) ? $alumno['AP_PATERNO'] : ''; ?>">
+                    <input type="text" class="form-control to-uppercase" name="ap_paterno" value="<?php echo isset($alumno['AP_PATERNO']) ? $alumno['AP_PATERNO'] : ''; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
 
                 </div>
                 <div class="form-group">
                     <label>Apellido Materno:</label>
-                    <input type="text" class="form-control to-uppercase" name="ap_materno" value="<?php echo isset($alumno['AP_MATERNO']) ? $alumno['AP_MATERNO'] : ''; ?>">
+                    <input type="text" class="form-control to-uppercase" name="ap_materno" value="<?php echo isset($alumno['AP_MATERNO']) ? $alumno['AP_MATERNO'] : ''; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
                 </div>
                 <div class="form-group">
                     <label>Fecha de Nacimiento:</label>
-                    <input type="date" class="form-control" name="fecha_nac" value="<?php echo isset($alumno['FECHA_NAC']) ? $alumno['FECHA_NAC'] : ''; ?>">
+                    <input type="date" class="form-control" name="fecha_nac" value="<?php echo isset($alumno['FECHA_NAC']) ? $alumno['FECHA_NAC'] : ''; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
                 </div>
                 <div class="form-group">
                     <label>RUT:</label>
-                    <input type="text" class="form-control" name="rut_alumno" value="<?php echo $valorRutAlumno; ?>">
+                    <input type="text" class="form-control" name="rut_alumno" value="<?php echo $valorRutAlumno; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
                 </div>
                 <div class="form-group" style="display:none;">
                     <label>RDA:</label>
-                    <input type="text" class="form-control to-uppercase" name="rda" value="<?php echo isset($alumno['RDA']) ? $alumno['RDA'] : ''; ?>">
+                    <input type="text" class="form-control to-uppercase" name="rda" value="<?php echo isset($alumno['RDA']) ? $alumno['RDA'] : ''; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
                 </div>
             
                 <div class="form-group">
                     <label>Calle:</label>
-                    <input type="text" class="form-control to-uppercase" name="calle" value="<?php echo isset($alumno['CALLE']) ? $alumno['CALLE'] : ''; ?>">
+                    <input type="text" class="form-control to-uppercase" name="calle" value="<?php echo isset($alumno['CALLE']) ? $alumno['CALLE'] : ''; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
                 </div>
                 <div class="form-group">
                     <label>Número:</label>
-                    <input type="text" class="form-control to-uppercase" name="nro_calle" value="<?php echo isset($alumno['NRO_CALLE']) ? $alumno['NRO_CALLE'] : ''; ?>">
+                    <input type="text" class="form-control to-uppercase" name="nro_calle" value="<?php echo isset($alumno['NRO_CALLE']) ? $alumno['NRO_CALLE'] : ''; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
                 </div>
                 <div class="form-group">
                     <label>Resto Dirección:</label>
-                    <input type="text" class="form-control to-uppercase" name="obs_direccion" value="<?php echo isset($alumno['OBS_DIRECCION']) ? $alumno['OBS_DIRECCION'] : ''; ?>">
+                    <input type="text" class="form-control to-uppercase" name="obs_direccion" value="<?php echo isset($alumno['OBS_DIRECCION']) ? $alumno['OBS_DIRECCION'] : ''; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
                 </div>
                 <div class="form-group">
                     <label>Villa/Población:</label>
-                    <input type="text" class="form-control to-uppercase" name="villa" value="<?php echo isset($alumno['VILLA']) ? $alumno['VILLA'] : ''; ?>">
+                    <input type="text" class="form-control to-uppercase" name="villa" value="<?php echo isset($alumno['VILLA']) ? $alumno['VILLA'] : ''; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
                 </div>
                 <div class="form-group">
         <label>Comuna:</label>
-        <select class="form-control" name="comuna">
+        <select class="form-control" name="comuna"  <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
             <?php foreach ($comunas as $comuna): ?>
                 <option value="<?php echo htmlspecialchars($comuna); ?>" <?php echo (isset($comunaAlumno) && $comunaAlumno == $comuna) ? 'selected' : ''; ?>>
                     <?php echo htmlspecialchars($comuna); ?>
@@ -487,7 +495,7 @@ if (isset($_POST['buscarAlumnoNombre'])) {
     </div>
     <div class="form-group">
         <label>Curso:</label>
-        <select class="form-control" name="curso">
+        <select class="form-control" name="curso"  <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
             <?php foreach ($cursos as $curso): ?>
                 <option value="<?php echo htmlspecialchars($curso); ?>" <?php echo (isset($cursoAlumno) && $cursoAlumno == $curso) ? 'selected' : ''; ?>>
                     <?php echo htmlspecialchars($curso); ?>
@@ -543,17 +551,17 @@ if (isset($_POST['buscarAlumnoNombre'])) {
     <input type="hidden" name="rutAlumno" value="<?php echo htmlspecialchars($rutAlumno); ?>">
     <div class="form-group">
         <label>Categoría:</label>
-        <input type="text" class="form-control" name="categoria" required>
+        <input type="text" class="form-control" name="categoria" required <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
     </div>
     <div class="form-group">
         <label>Descripción:</label>
-        <textarea class="form-control" name="descripcion" required></textarea>
+        <textarea class="form-control" name="descripcion" required <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>></textarea>
     </div>
     <div class="form-group">
         <label>Fecha:</label>
-        <input type="date" class="form-control" name="fecha" required>
+        <input type="date" class="form-control" name="fecha" required <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
     </div>
-    <button type="submit" class="btn btn-primary btn-block custom-button" name="agregar_observacion">Agregar Observación</button>
+    <button type="submit" class="btn btn-primary btn-block custom-button" name="agregar_observacion" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>Agregar Observación</button>
 </form>
 
 
