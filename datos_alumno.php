@@ -537,7 +537,7 @@ if (isset($_POST['buscarAlumnoNombre'])) {
                     <td>
                         <form action="" method="post" >
                             <input type="hidden" name="id_observacion" value="<?php echo $obs['ID']; ?>">
-                            <button type="submit" name="eliminar_observacion" class="btn btn-danger">Eliminar</button>
+                            <button type="submit" name="eliminar_observacion" class="btn btn-danger" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>Eliminar</button>
                         </form>
                     </td>
                 </tr>
