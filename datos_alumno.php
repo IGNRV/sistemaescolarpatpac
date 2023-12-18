@@ -1,7 +1,7 @@
 <?php
 // Incluye la conexión a la base de datos
 require_once 'db.php';
-/* ini_set('display_errors', 1); */
+ ini_set('display_errors', 1);
 
 // Inicia sesión
 $actualizacionExitosa = isset($_POST['actualizar']) && !empty($mensaje);
@@ -187,11 +187,29 @@ if (isset($_POST['actualizar'])) {
     $stmtActualizar->bind_param("sssssssssssssssss", $nombre, $rutAlumno, $apPaterno, $apMaterno, $fechaNac, $rda, $calle, $nroCalle, $obsDireccion, $villa, $comunaSeleccionada, $idRegion, $idcomuna, $idcurso, $mail, $fono, $rutAlumnoHidden);
     $stmtActualizar->execute();
 
-    // Verificar si hubo actualizaciones y mostrar mensaje correspondiente
     if ($stmtActualizar->affected_rows > 0) {
         $mensaje = "Datos del alumno actualizados con éxito.";
-        $rutAlumno = ''; // Limpia la variable después de una actualización exitosa
 
+        // Obtén el ID_ALUMNO del alumno que se está actualizando
+        $idAlumnoActualizado = null;
+        $stmtIdAlumno = $conn->prepare("SELECT ID_ALUMNO FROM ALUMNO WHERE RUT_ALUMNO = ?");
+        $stmtIdAlumno->bind_param("s", $rutAlumnoHidden);
+        $stmtIdAlumno->execute();
+        $resultadoIdAlumno = $stmtIdAlumno->get_result();
+        if ($resultadoIdAlumno->num_rows > 0) {
+            $filaIdAlumno = $resultadoIdAlumno->fetch_assoc();
+            $idAlumnoActualizado = $filaIdAlumno['ID_ALUMNO'];
+        }
+        $stmtIdAlumno->close();
+
+        // Inserta en HISTORIAL_CAMBIOS
+        $tipoCambio = "ACTUALIZACION DATOS APODERADOS";
+        $stmtHistorial = $conn->prepare("INSERT INTO HISTORIAL_CAMBIOS (ID_USUARIO, ID_ALUMNO, TIPO_CAMBIO) VALUES (?, ?, ?)");
+        $stmtHistorial->bind_param("iis", $id_usuario, $idAlumnoActualizado, $tipoCambio);
+        $stmtHistorial->execute();
+        $stmtHistorial->close();
+
+        $rutAlumno = ''; // Limpia la variable después de una actualización exitosa
     } else {
         $mensaje = "No se pudo actualizar los datos del alumno.";
     }
