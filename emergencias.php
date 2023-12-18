@@ -13,6 +13,14 @@ if (!isset($_SESSION['EMAIL'])) {
 
 $EMAIL = $_SESSION['EMAIL'];
 
+$tipoUsuarioActual = null;
+$queryTipoUsuario = "SELECT TIPO_USUARIO FROM USERS WHERE EMAIL = '$EMAIL'";
+$resultadoTipoUsuario = $conn->query($queryTipoUsuario);
+if ($resultadoTipoUsuario->num_rows > 0) {
+    $fila = $resultadoTipoUsuario->fetch_assoc();
+    $tipoUsuarioActual = $fila['TIPO_USUARIO'];
+}
+
 $periodosEscolares = [];
 $stmtPeriodos = $conn->prepare("SELECT ID, PERIODO FROM PERIODO_ESCOLAR");
 $stmtPeriodos->execute();
@@ -215,34 +223,34 @@ $stmtAlumnos->close();
             <div class="form-row">
                 <div class="form-group col-md-12">
                     <label for="inputRUT">RUT (Sin puntos ni guion)</label>
-                    <input type="text" name="rut" class="form-control" id="inputRUT" value="<?php echo isset($contactoEmergencia['RUT_APODERADO']) ? $contactoEmergencia['RUT_APODERADO'] : ''; ?>">
+                    <input type="text" name="rut" class="form-control" id="inputRUT" value="<?php echo isset($contactoEmergencia['RUT_APODERADO']) ? $contactoEmergencia['RUT_APODERADO'] : ''; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group col-md-4">
                     <label for="inputNombres">Nombres</label>
-                    <input type="text" name="nombre" class="form-control to-uppercase" id="inputNombres" value="<?php echo isset($contactoEmergencia['NOMBRE']) ? $contactoEmergencia['NOMBRE'] : ''; ?>">
+                    <input type="text" name="nombre" class="form-control to-uppercase" id="inputNombres" value="<?php echo isset($contactoEmergencia['NOMBRE']) ? $contactoEmergencia['NOMBRE'] : ''; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
                 </div>
                 <div class="form-group col-md-4">
                     <label for="inputApellidoPaterno">Ap. Paterno</label>
-                    <input type="text" name="ap_paterno" class="form-control to-uppercase" id="inputApellidoPaterno" value="<?php echo isset($contactoEmergencia['AP_PATERNO']) ? $contactoEmergencia['AP_PATERNO'] : ''; ?>">
+                    <input type="text" name="ap_paterno" class="form-control to-uppercase" id="inputApellidoPaterno" value="<?php echo isset($contactoEmergencia['AP_PATERNO']) ? $contactoEmergencia['AP_PATERNO'] : ''; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
                 </div>
                 <div class="form-group col-md-4">
                     <label for="inputApellidoMaterno">Ap. Materno</label>
-                    <input type="text" name="ap_materno" class="form-control to-uppercase" id="inputApellidoMaterno" value="<?php echo isset($contactoEmergencia['AP_MATERNO']) ? $contactoEmergencia['AP_MATERNO'] : ''; ?>">
+                    <input type="text" name="ap_materno" class="form-control to-uppercase" id="inputApellidoMaterno" value="<?php echo isset($contactoEmergencia['AP_MATERNO']) ? $contactoEmergencia['AP_MATERNO'] : ''; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group col-md-6">
                     <label for="inputTelefono">Teléfono</label>
-                    <input type="text" name="fono_emergencia" class="form-control" id="inputTelefono" value="<?php echo isset($contactoEmergencia['FONO_EMERGENCIA']) ? $contactoEmergencia['FONO_EMERGENCIA'] : ''; ?>">
+                    <input type="text" name="fono_emergencia" class="form-control" id="inputTelefono" value="<?php echo isset($contactoEmergencia['FONO_EMERGENCIA']) ? $contactoEmergencia['FONO_EMERGENCIA'] : ''; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
                 </div>
                 <div class="form-group col-md-6">
                     <label for="inputEmail">Correo Electrónico</label>
-                    <input type="email" name="mail_emergencia" class="form-control" id="inputEmail" value="<?php echo isset($contactoEmergencia['MAIL_EMERGENCIA']) ? $contactoEmergencia['MAIL_EMERGENCIA'] : ''; ?>">
+                    <input type="email" name="mail_emergencia" class="form-control" id="inputEmail" value="<?php echo isset($contactoEmergencia['MAIL_EMERGENCIA']) ? $contactoEmergencia['MAIL_EMERGENCIA'] : ''; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
                 </div>
             </div>
-            <button type="submit" class="btn btn-primary btn-block" name="actualizar_contacto">ACTUALIZAR CONTACTO DE EMERGENCIA</button>
+            <button type="submit" class="btn btn-primary btn-block" name="actualizar_contacto" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>ACTUALIZAR CONTACTO DE EMERGENCIA</button>
         </form>
 </div>
 
@@ -284,7 +292,7 @@ $stmtAlumnos->close();
         <form method="post">
             <div class="form-group">
                 <label for="inputCategoria">Categoría</label>
-                <select class="form-control" name="categoria" id="inputCategoria" required>
+                <select class="form-control" name="categoria" id="inputCategoria" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?> required>
                     <option value="ENFERMEDAD">ENFERMEDAD</option>
                     <option value="ALERGIA">ALERGIA</option>
                     <option value="MEDICAMENTO">MEDICAMENTO</option>
@@ -293,15 +301,15 @@ $stmtAlumnos->close();
             </div>
             <div class="form-group">
                 <label for="inputDescripcion">Descripción</label>
-                <input type="text" class="form-control to-uppercase" name="descripcion" id="inputDescripcion" required>
+                <input type="text" class="form-control to-uppercase" name="descripcion" id="inputDescripcion" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?> required>
             </div>
             <div class="form-group">
                 <label for="inputFecha">Fecha</label>
-                <input type="date" class="form-control" name="fecha" id="inputFecha" required>
+                <input type="date" class="form-control" name="fecha" id="inputFecha" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?> required>
             </div>
             <div class="form-group">
     <label for="periodoEscolar">Periodo Escolar</label>
-    <select name="periodoEscolar" class="form-control" id="periodoEscolar">
+    <select name="periodoEscolar" class="form-control" id="periodoEscolar" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
         <?php foreach ($periodosEscolares as $periodo): ?>
             <option value="<?php echo htmlspecialchars($periodo['ID']); ?>">
                 <?php echo htmlspecialchars($periodo['PERIODO']); ?>
@@ -314,7 +322,7 @@ $stmtAlumnos->close();
     <input type="hidden" name="idAlumno" value="<?php echo htmlspecialchars($contactoEmergencia['ID_ALUMNO'] ?? ''); ?>">
 
     <!-- Los demás campos de tu formulario -->
-    <button type="submit" class="btn btn-primary btn-block" name="agregar_antecedentes">AGREGAR ANTECEDENTES MÉDICOS</button>
+    <button type="submit" class="btn btn-primary btn-block" name="agregar_antecedentes" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>AGREGAR ANTECEDENTES MÉDICOS</button>
 </form>
         </form>
         <!-- Tabla de antecedentes médicos -->

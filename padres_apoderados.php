@@ -23,6 +23,14 @@ $apoderados = []; // Array para almacenar los datos de los apoderados
 $rutAlumno = ''; // Inicializa la variable $rutAlumno
 
 
+$tipoUsuarioActual = null;
+$queryTipoUsuario = "SELECT TIPO_USUARIO FROM USERS WHERE EMAIL = '$EMAIL'";
+$resultadoTipoUsuario = $conn->query($queryTipoUsuario);
+if ($resultadoTipoUsuario->num_rows > 0) {
+    $fila = $resultadoTipoUsuario->fetch_assoc();
+    $tipoUsuarioActual = $fila['TIPO_USUARIO'];
+}
+
 // Consulta para obtener los apoderados
 $consultaApoderados = $conn->query("SELECT ID_APODERADO, NOMBRE, AP_PATERNO, AP_MATERNO FROM APODERADO ORDER BY AP_PATERNO, AP_MATERNO ASC");
 $listaApoderados = $consultaApoderados->fetch_all(MYSQLI_ASSOC);
@@ -311,12 +319,12 @@ if (isset($_POST['buscarAlumnoNombre'])) {
             <td><?php echo htmlspecialchars($apoderado['MAIL_PART']); ?></td>
             <td><?php echo htmlspecialchars($apoderado['FONO_PART']); ?></td>
             <td>
-                <button onclick="location.href='/sistemaescolar/editar_apoderado.php?rut=<?php echo $apoderado['RUT_APODERADO']; ?>'" class="btn btn-info">Editar</button>
+                <button onclick="location.href='/sistemaescolar/editar_apoderado.php?rut=<?php echo $apoderado['RUT_APODERADO']; ?>'" class="btn btn-info" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>Editar</button>
             </td>
             <td>
                 <form method="post">
                     <input type="hidden" name="rut_apoderado_eliminar" value="<?php echo $apoderado['RUT_APODERADO']; ?>">
-                    <button type="submit" class="btn btn-danger" name="eliminar_apoderado">Eliminar</button>
+                    <button type="submit" class="btn btn-danger" name="eliminar_apoderado" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>Eliminar</button>
                 </form>
             </td>
         </tr>
@@ -360,7 +368,7 @@ if (isset($_POST['buscarAlumnoNombre'])) {
 
     <div class="form-group">
         <label for="apoderadoSeleccionado">Apoderado:</label>
-        <select class="form-control to-uppercase" id="apoderadoSeleccionado" name="apoderadoSeleccionado">
+        <select class="form-control to-uppercase" id="apoderadoSeleccionado" name="apoderadoSeleccionado" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
             <?php foreach($listaApoderados as $apoderado): ?>
                 <option value="<?php echo htmlspecialchars($apoderado['ID_APODERADO']); ?>">
                     <?php echo htmlspecialchars($apoderado['AP_PATERNO'] . ' ' . $apoderado['AP_MATERNO'] . ' ' .  $apoderado['NOMBRE']); ?>
@@ -368,7 +376,7 @@ if (isset($_POST['buscarAlumnoNombre'])) {
             <?php endforeach; ?>
         </select>
     </div>
-    <button type="submit" class="btn btn-primary" name="asignarApoderado">Asignar como apoderado</button>
+    <button type="submit" class="btn btn-primary" name="asignarApoderado" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>Asignar como apoderado</button>
 </form>
     
     <h3>Información de padres/apoderados</h3>
@@ -377,47 +385,47 @@ if (isset($_POST['buscarAlumnoNombre'])) {
 
         <div class="form-group">
             <label for="rut">RUT</label>
-            <input type="text" class="form-control to-uppercase" name="rut" id="rut" maxlength="10">
+            <input type="text" class="form-control to-uppercase" name="rut" id="rut" maxlength="10" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
         </div>
         <div class="form-group">
             <label for="parentesco">Parentesco</label>
-            <input type="text" class="form-control to-uppercase" name="parentesco">
+            <input type="text" class="form-control to-uppercase" name="parentesco" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
         </div>
         <div class="form-group">
             <label for="nombres">Nombre</label>
-            <input type="text" class="form-control to-uppercase" name="nombre">
+            <input type="text" class="form-control to-uppercase" name="nombre" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
         </div>
         <div class="form-group">
             <label for="apellidoPaterno">Apellido Paterno</label>
-            <input type="text" class="form-control to-uppercase" name="apellidoPaterno">
+            <input type="text" class="form-control to-uppercase" name="apellidoPaterno" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
         </div>
         <div class="form-group">
             <label for="apellidoMaterno">Apellido Materno</label>
-            <input type="text" class="form-control to-uppercase" name="apellidoMaterno">
+            <input type="text" class="form-control to-uppercase" name="apellidoMaterno" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
         </div>
         <div class="form-group">
             <label>Fecha de Nacimiento:</label>
-            <input type="date" class="form-control to-uppercase" name="fecha_nac">
+            <input type="date" class="form-control to-uppercase" name="fecha_nac" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
         </div>
         <div class="form-group">
             <label for="calle">Calle</label>
-            <input type="text" class="form-control to-uppercase" name="calle">
+            <input type="text" class="form-control to-uppercase" name="calle" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
         </div>
         <div class="form-group">
             <label for="n_calle">N°</label>
-            <input type="text" class="form-control to-uppercase" name="n_calle">
+            <input type="text" class="form-control to-uppercase" name="n_calle" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
         </div>
         <div class="form-group">
             <label for="restoDireccion">Resto Dirección</label>
-            <input type="text" class="form-control to-uppercase" name="obsDireccion">
+            <input type="text" class="form-control to-uppercase" name="obsDireccion" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
         </div>
         <div class="form-group">
             <label for="villaPoblacion">Villa/Población</label>
-            <input type="text" class="form-control to-uppercase" name="villaPoblacion">
+            <input type="text" class="form-control to-uppercase" name="villaPoblacion" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
         </div>
         <div class="form-group">
             <label for="comuna">Comuna</label>
-            <select class="form-control to-uppercase" name="comuna" id="comuna">
+            <select class="form-control to-uppercase" name="comuna" id="comuna" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
                 <?php foreach ($comunas as $comuna): ?>
                     <option value="<?php echo htmlspecialchars($comuna['ID_COMUNA']); ?>">
                         <?php echo htmlspecialchars($comuna['NOM_COMUNA']); ?>
@@ -431,25 +439,25 @@ if (isset($_POST['buscarAlumnoNombre'])) {
         </div> -->
         <div class="form-group">
             <label for="telefonoParticular">Teléfono Particular</label>
-            <input type="tel" class="form-control" name="telefonoParticular">
+            <input type="tel" class="form-control" name="telefonoParticular" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
         </div>
         <div class="form-group">
             <label for="correoElectronicoPersonal">Correo Electrónico Personal</label>
-            <input type="email" class="form-control" name="correoElectronicoPersonal">
+            <input type="email" class="form-control" name="correoElectronicoPersonal" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
         </div>
         <div class="form-group">
             <label for="correoElectronicoTrabajo">Correo Electrónico Trabajo</label>
-            <input type="email" class="form-control" name="correoElectronicoTrabajo">
+            <input type="email" class="form-control" name="correoElectronicoTrabajo" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
         </div>
         <div class="form-group">
             <label for="tutorAcademico">Tutor Academico</label>
-            <input type="checkbox" id="tutorAcademico" name="tutorAcademico" value="1">
+            <input type="checkbox" id="tutorAcademico" name="tutorAcademico" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?> value="1">
         </div>
         <div class="form-group">
             <label for="tutorEconomico">Tutor Economico</label>
-            <input type="checkbox" id="tutorEconomico" name="tutorEconomico" value="1">
+            <input type="checkbox" id="tutorEconomico" name="tutorEconomico" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?> value="1">
         </div>
-        <button type="submit" class="btn btn-primary btn-block custom-button" name="actualizar_datos">AGREGAR APODERADO</button>
+        <button type="submit" class="btn btn-primary btn-block custom-button" name="actualizar_datos" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>AGREGAR APODERADO</button>
 </form>
 </div>
 <script>

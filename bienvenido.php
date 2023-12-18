@@ -55,6 +55,13 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["nueva_foto"])) {
     header("Location: bienvenido.php");
     exit;
 }
+$tipoUsuarioActual = null;
+$queryTipoUsuario = "SELECT TIPO_USUARIO FROM USERS WHERE EMAIL = '$EMAIL'";
+$resultadoTipoUsuario = $conn->query($queryTipoUsuario);
+if ($resultadoTipoUsuario->num_rows > 0) {
+    $fila = $resultadoTipoUsuario->fetch_assoc();
+    $tipoUsuarioActual = $fila['TIPO_USUARIO'];
+}
 include 'nav.php';
 ?>
 
@@ -122,6 +129,8 @@ include 'nav.php';
         <?php
         if (isset($_GET['page'])) {
             $page = $_GET['page'];
+            
+            if ($tipoUsuarioActual != 2 || ($tipoUsuarioActual == 2 && !in_array($page, ['tutor_economico', 'pago_electronico', 'vista_pago_automatico', 'cuadratura_caja', 'agregar_alumno', 'agregar_contacto_emergencia', 'pago_cheque_anual', 'becas', 'pago_rut_alumno']))) {
             switch ($page) {
                 case 'datos_alumno':
                     include 'datos_alumno.php';
@@ -169,9 +178,9 @@ include 'nav.php';
                 default:
                     include 'inicio.php';
                     break;
+                }
             }
         } else {
-            // Si no hay parámetro 'page', muestra la pantalla de inicio por defecto
             include 'inicio.php';
         }
         ?>
