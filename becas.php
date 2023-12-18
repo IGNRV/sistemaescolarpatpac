@@ -217,10 +217,10 @@ Periodo Escolar
             <tr id="fila-<?php echo $pago['ID_PAGO']; ?>">
                     <td><?php echo $index + 1; ?></td>
                     <td><?php echo htmlspecialchars($pago['FECHA_VENCIMIENTO']); ?></td>
-                    <td><?php echo htmlspecialchars($pago['VALOR_ARANCEL']); ?></td>
+                    <td><?php echo htmlspecialchars($pago['VALOR_A_PAGAR']); ?></td>
  
             <td>
-                <input type="number" class="form-control" name="DescuentoBeca[]" value="<?php echo htmlspecialchars($pago['VALOR_ARANCEL']); ?>" disabled>
+                <input type="number" class="form-control" name="DescuentoBeca[]" value="<?php echo htmlspecialchars($pago['VALOR_A_PAGAR']); ?>" disabled>
             </td>
             <td>
                 <input type="number" class="form-control" name="OtrosDescuentos[]" value="" disabled>

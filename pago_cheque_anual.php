@@ -509,30 +509,34 @@ if (isset($_SESSION['pagoRegistrado'])) {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-        var checkboxes = document.querySelectorAll('.seleccionarPago');
+    var checkboxes = document.querySelectorAll('.seleccionarPago');
 
-  
-
-        // Función para calcular el total a pagar y actualizarlo cuando cambien las selecciones
-        function calcularTotalAPagar() {
-            var totalAPagar = 0;
-            checkboxes.forEach(function(checkbox) {
-                if (checkbox.checked) {
-                    totalAPagar += parseFloat(checkbox.value);
-                }
-            });
-
-            // Actualizar el elemento en el HTML
-            var totalAPagarElement = document.getElementById('totalAPagar');
-            totalAPagarElement.textContent = 'Total a Pagar $' + totalAPagar.toFixed(0);
-        }
-
-        // Llamar a la función al cargar la página y cuando cambie una selección
-        calcularTotalAPagar();
+    // Función para calcular el total a pagar y actualizarlo cuando cambien las selecciones
+    function calcularTotalAPagar() {
+        var totalAPagar = 0;
         checkboxes.forEach(function(checkbox) {
-            checkbox.addEventListener('change', calcularTotalAPagar);
+            if (checkbox.checked) {
+                var fila = checkbox.closest('tr');
+                var valorAPagar = parseFloat(fila.cells[2].innerText) || 0; // Monto Cuota
+                var valorPagado = parseFloat(fila.cells[8].innerText) || 0; // Valor Pagado
+
+                // Añadir la diferencia al total a pagar
+                totalAPagar += (valorAPagar - valorPagado);
+            }
         });
+
+        // Actualizar el elemento en el HTML
+        var totalAPagarElement = document.getElementById('totalAPagar');
+        totalAPagarElement.textContent = 'Total a Pagar $' + totalAPagar.toFixed(0);
+    }
+
+    // Llamar a la función al cargar la página y cuando cambie una selección
+    calcularTotalAPagar();
+    checkboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', calcularTotalAPagar);
     });
+});
+
 
     document.getElementById('btnRegistrarPago').addEventListener('click', function() {
             // Calcular el total de los montos de los cheques

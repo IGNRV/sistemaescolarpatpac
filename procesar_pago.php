@@ -95,17 +95,21 @@ function insertarDetalleTransaccion($pago, $tipoDocumento, $monto, $adicionales,
     $numeroDocumento = null;
     if ($tipoDocumento == 'EFECTIVO') {
         // Incrementa el número de documento para EFECTIVO
-        $numeroDocumento = obtenerSiguienteNumeroDocumento($conn); // Modificado para usar una función general
+        $numeroDocumento = obtenerSiguienteNumeroDocumento($conn);
+
+        // Usa el valor del menú desplegable para el medio de pago
+        $medioPago = $adicionales['tipoDocumentoEfectivo']; // Aquí se selecciona el tipo de documento de efectivo
     } elseif ($tipoDocumento == 'POS') {
         // Para POS, utiliza el número de comprobante proporcionado
         $numeroDocumento = $adicionales['numeroComprobantePos'];
+        $medioPago = 'POS';
     } elseif ($tipoDocumento == 'CHEQUE') {
         // Para CHEQUE, utiliza el número de documento proporcionado
         $numeroDocumento = $adicionales['numeroDocumentoCheque'];
+        $medioPago = 'CHEQUE';
     }
 
-    // Asignar medio de pago y número de cuotas si es POS
-    $medioPago = ($tipoDocumento == 'POS') ? $adicionales['tipoDocumentoPos'] : $tipoDocumento;
+    // Asignar número de cuotas si es POS
     $nCuotas = ($tipoDocumento == 'POS' && !empty($adicionales['cuotasPos'])) ? $adicionales['cuotasPos'] : 0;
 
     $stmt = $conn->prepare("INSERT INTO DETALLES_TRANSACCION (ANO, CODIGO_PRODUCTO, FOLIO_PAGO, VALOR, FECHA_PAGO, MEDIO_DE_PAGO, N_CUOTAS, ESTADO, FECHA_VENCIMIENTO, TIPO_DOCUMENTO, NUMERO_DOCUMENTO, FECHA_EMISION, FECHA_COBRO, BANCO, ID_PAGO) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
@@ -124,23 +128,20 @@ function insertarDetalleTransaccion($pago, $tipoDocumento, $monto, $adicionales,
 
     if ($tipoDocumento == 'CHEQUE') {
         $fechaEmisionCheque = $adicionales['fechaEmisionCheque'];
-
         // Convertir la fecha de emisión a DateTime
         $fechaEmisionDateTime = new DateTime($fechaEmisionCheque);
-
         // Agregar un día a la fecha de emisión
         $fechaEmisionDateTime->modify('+1 day');
-
         // Actualizar $fechaEmision y $fechaCobro para reflejar la fecha de emisión del cheque y la fecha de cobro
         $fechaEmision = $fechaEmisionCheque;
         $fechaCobro = $fechaEmisionDateTime->format('Y-m-d');
         $banco = $adicionales['bancoSeleccionado']; // Añadir esta línea
-        
     }
 
     $stmt->execute();
     $stmt->close();
 }
+
 
 function actualizarHistorialPagos($idPago, $totalPagado, $conn, $tipoDocumento) {
     // Obtener VALOR_A_PAGAR y VALOR_PAGADO actuales
