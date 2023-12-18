@@ -231,8 +231,9 @@ if (isset($_POST['agregarAlumno'])) {
 
     if ($stmtNuevo->affected_rows > 0) {
         $mensaje = "Nuevo alumno agregado con éxito.";
-        $idAlumno = $conn->insert_id;
+        $idAlumnoNuevo = $conn->insert_id; // Obtiene el ID del alumno recién insertado
 
+        // Código para manejar el historial de pagos
         // Obtén el último ID_PAGO de HISTORIAL_PAGOS
         $ultimoIDPago = $conn->query("SELECT MAX(ID_PAGO) as ultimoID FROM HISTORIAL_PAGOS")->fetch_assoc()['ultimoID'];
         $idPago = $ultimoIDPago + 1;
@@ -250,15 +251,22 @@ if (isset($_POST['agregarAlumno'])) {
         ];
 
         // Preparar la consulta para insertar en HISTORIAL_PAGOS
-        $stmtHistorial = $conn->prepare("INSERT INTO HISTORIAL_PAGOS (ID_PAGO, ID_ALUMNO, RUT_ALUMNO, CODIGO_PRODUCTO, VALOR_ARANCEL, DESCUENTO_BECA, OTROS_DESCUENTOS, VALOR_A_PAGAR, FECHA_PAGO, MEDIO_PAGO, NRO_MEDIOPAGO, FECHA_SUSCRIPCION, ESTADO_PAGO, FECHA_VENCIMIENTO, FECHA_INGRESO, FECHA_COBRO, ID_PERIODO_ESCOLAR) VALUES (?, ?, ?, 1, 95000, 0, 0, 95000, '2100-01-01', 0, 0, '2100-01-01', 0, ?, ?, '2100-01-01', 1)");
+        $stmtHistorialPagos = $conn->prepare("INSERT INTO HISTORIAL_PAGOS (ID_PAGO, ID_ALUMNO, RUT_ALUMNO, CODIGO_PRODUCTO, VALOR_ARANCEL, DESCUENTO_BECA, OTROS_DESCUENTOS, VALOR_A_PAGAR, FECHA_PAGO, MEDIO_PAGO, NRO_MEDIOPAGO, FECHA_SUSCRIPCION, ESTADO_PAGO, FECHA_VENCIMIENTO, FECHA_INGRESO, FECHA_COBRO, ID_PERIODO_ESCOLAR) VALUES (?, ?, ?, 1, 95000, 0, 0, 95000, '2100-01-01', 0, 0, '2100-01-01', 0, ?, ?, '2100-01-01', 1)");
 
         foreach ($fechasVencimiento as $fechaVencimiento) {
-            $stmtHistorial->bind_param("iisss", $idPago, $idAlumno, $rutAlumnoNuevo, $fechaVencimiento, $fechaActual);
-            $stmtHistorial->execute();
+            $stmtHistorialPagos->bind_param("iisss", $idPago, $idAlumnoNuevo, $rutAlumnoNuevo, $fechaVencimiento, $fechaActual);
+            $stmtHistorialPagos->execute();
             $idPago++; // Incrementa el ID_PAGO para la próxima inserción
         }
 
-        $stmtHistorial->close();
+        $stmtHistorialPagos->close();
+
+        // Inserta en HISTORIAL_CAMBIOS
+        $tipoCambio = "ALUMNO ANADIDO";
+        $stmtHistorialCambios = $conn->prepare("INSERT INTO HISTORIAL_CAMBIOS (ID_USUARIO, ID_ALUMNO, TIPO_CAMBIO) VALUES (?, ?, ?)");
+        $stmtHistorialCambios->bind_param("iis", $id_usuario, $idAlumnoNuevo, $tipoCambio);
+        $stmtHistorialCambios->execute();
+        $stmtHistorialCambios->close();
     } else {
         $mensaje = "Error al agregar el nuevo alumno.";
     }
