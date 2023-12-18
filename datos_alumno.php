@@ -309,12 +309,32 @@ if (isset($_POST['cambiarEstado'])) {
 
     if ($stmt->affected_rows > 0) {
         $mensaje = "Estado del alumno actualizado correctamente.";
+
+        // Obtén el ID_ALUMNO del alumno que se está actualizando
+        $idAlumnoActualizado = null;
+        $stmtIdAlumno = $conn->prepare("SELECT ID_ALUMNO FROM ALUMNO WHERE RUT_ALUMNO = ?");
+        $stmtIdAlumno->bind_param("s", $rutAlumno);
+        $stmtIdAlumno->execute();
+        $resultadoIdAlumno = $stmtIdAlumno->get_result();
+        if ($resultadoIdAlumno->num_rows > 0) {
+            $filaIdAlumno = $resultadoIdAlumno->fetch_assoc();
+            $idAlumnoActualizado = $filaIdAlumno['ID_ALUMNO'];
+        }
+        $stmtIdAlumno->close();
+
+        // Definir el tipo de cambio según el nuevo estado
+        $tipoCambio = $nuevoEstado == 1 ? "ACTIVACION DE ALUMNO" : "DESACTIVACION DE ALUMNO";
+
+        // Inserta en HISTORIAL_CAMBIOS
+        $stmtHistorial = $conn->prepare("INSERT INTO HISTORIAL_CAMBIOS (ID_USUARIO, ID_ALUMNO, TIPO_CAMBIO) VALUES (?, ?, ?)");
+        $stmtHistorial->bind_param("iis", $id_usuario, $idAlumnoActualizado, $tipoCambio);
+        $stmtHistorial->execute();
+        $stmtHistorial->close();
     } else {
         $mensaje = "Error al actualizar el estado del alumno.";
     }
     $stmt->close();
 }
-
 
 if (isset($_POST['eliminar_observacion'])) {
     // Recoge el ID de la observación a eliminar
