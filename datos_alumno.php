@@ -221,21 +221,40 @@ if (isset($_POST['agregar_observacion'])) {
     $categoria = $_POST['categoria'];
     $descripcion = $_POST['descripcion'];
     $fecha = $_POST['fecha'];
-    // Asegúrate de usar la misma variable que usas para mostrar el RUT en el formulario
     $rutAlumno = $_POST['rutAlumno']; 
 
-    // Asegúrate de que $rutAlumno esté definido y no sea nulo
     if (isset($rutAlumno) && !empty($rutAlumno)) {
-        // Preparar la consulta SQL para insertar la observación
+        // Insertar la observación en la tabla OBSERVACIONES
         $stmt = $conn->prepare("INSERT INTO OBSERVACIONES (CATEGORIA, DESCRIPCION, FECHA, RUT_ALUMNO, DELETE_FLAG) VALUES (?, ?, ?, ?, 0)");
-        $stmt->bind_param("ssss", $categoria, $descripcion, $fecha, $rutAlumno); // Cambia "i" por "s" si RUT_ALUMNO es VARCHAR
+        $stmt->bind_param("ssss", $categoria, $descripcion, $fecha, $rutAlumno);
         $stmt->execute();
-        if ($stmt->affected_rows > 0) {
+        $idObservacion = $stmt->insert_id; // Obtener el ID de la observación insertada
+        $stmt->close();
+
+        if ($idObservacion > 0) {
             $mensaje = "Observación agregada con éxito.";
+
+            // Obtener el ID_ALUMNO asociado a la observación
+            $idAlumnoObservado = null;
+            $stmtAlumno = $conn->prepare("SELECT ID_ALUMNO FROM ALUMNO WHERE RUT_ALUMNO = ?");
+            $stmtAlumno->bind_param("s", $rutAlumno);
+            $stmtAlumno->execute();
+            $resultadoAlumno = $stmtAlumno->get_result();
+            if ($resultadoAlumno->num_rows > 0) {
+                $filaAlumno = $resultadoAlumno->fetch_assoc();
+                $idAlumnoObservado = $filaAlumno['ID_ALUMNO'];
+            }
+            $stmtAlumno->close();
+
+            // Insertar en HISTORIAL_CAMBIOS
+            $tipoCambio = "OBSERVACION ANADIDA";
+            $stmtHistorial = $conn->prepare("INSERT INTO HISTORIAL_CAMBIOS (ID_USUARIO, ID_ALUMNO, TIPO_CAMBIO, ID_OBSERVACION) VALUES (?, ?, ?, ?)");
+            $stmtHistorial->bind_param("iisi", $id_usuario, $idAlumnoObservado, $tipoCambio, $idObservacion);
+            $stmtHistorial->execute();
+            $stmtHistorial->close();
         } else {
             $mensaje = "Error al agregar la observación.";
         }
-        $stmt->close();
     } else {
         $mensaje = "RUT del alumno no definido.";
     }
@@ -347,14 +366,31 @@ if (isset($_POST['eliminar_observacion'])) {
 
     if ($stmtEliminar->affected_rows > 0) {
         $mensaje = "Observación eliminada con éxito.";
+
+        // Obtener el ID_ALUMNO asociado a la observación
+        $idAlumnoObservado = null;
+        $stmtAlumno = $conn->prepare("SELECT ID_ALUMNO FROM ALUMNO WHERE RUT_ALUMNO IN (SELECT RUT_ALUMNO FROM OBSERVACIONES WHERE ID = ?)");
+        $stmtAlumno->bind_param("i", $idObservacion);
+        $stmtAlumno->execute();
+        $resultadoAlumno = $stmtAlumno->get_result();
+        if ($resultadoAlumno->num_rows > 0) {
+            $filaAlumno = $resultadoAlumno->fetch_assoc();
+            $idAlumnoObservado = $filaAlumno['ID_ALUMNO'];
+        }
+        $stmtAlumno->close();
+
+        // Insertar en HISTORIAL_CAMBIOS
+        $tipoCambio = "OBSERVACION ELIMINADA";
+        $stmtHistorial = $conn->prepare("INSERT INTO HISTORIAL_CAMBIOS (ID_USUARIO, ID_ALUMNO, TIPO_CAMBIO, ID_OBSERVACION) VALUES (?, ?, ?, ?)");
+        $stmtHistorial->bind_param("iisi", $id_usuario, $idAlumnoObservado, $tipoCambio, $idObservacion);
+        $stmtHistorial->execute();
+        $stmtHistorial->close();
     } else {
         $mensaje = "Error al eliminar la observación.";
     }
     $stmtEliminar->close();
-    
-    // No olvides recargar las observaciones para reflejar los cambios
-    // Aquí deberías recargar la variable $observaciones con los datos actualizados de la base de datos
 }
+
 
 // Función para verificar si el RUT es válido o si es un hash aleatorio
 function mostrarRut($rut) {
