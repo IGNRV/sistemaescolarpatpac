@@ -268,34 +268,27 @@ if (isset($_POST['agregarAlumno'])) {
     $stmtNuevo->close();
 }
 
+
 if (isset($_POST['cambiarEstado'])) {
-    $rutAlumno = $_POST['rutAlumno']; // Asegúrate de obtener el RUT del alumno
-    $nuevoEstado = ($_POST['estadoActual'] == 'ACTIVADO') ? 2 : 1;
+    $rutAlumno = $_POST['rutAlumno'];
+    $estadoActual = $_POST['estadoActual'];
 
-    // Prepara la consulta SQL para cambiar el estado y, si es necesario, actualizar FECHA_RETIRO
-    if ($nuevoEstado == 2) {
-        // Si el nuevo estado es inactivo (2), actualiza también FECHA_RETIRO con la fecha actual
-        $fechaRetiro = date('Y-m-d'); // Obtiene la fecha actual
-        $stmtCambiarEstado = $conn->prepare("UPDATE ALUMNO SET STATUS = ?, FECHA_RETIRO = ? WHERE RUT_ALUMNO = ?");
-        $stmtCambiarEstado->bind_param("sss", $nuevoEstado, $fechaRetiro, $rutAlumno);
-    } else {
-        // Si el estado es activo, simplemente cambia el estado
-        $stmtCambiarEstado = $conn->prepare("UPDATE ALUMNO SET STATUS = ? WHERE RUT_ALUMNO = ?");
-        $stmtCambiarEstado->bind_param("ss", $nuevoEstado, $rutAlumno);
-    }
-    
-    $stmtCambiarEstado->execute();
+    // Determinar el nuevo estado
+    $nuevoEstado = ($estadoActual == 1) ? 2 : 1;
 
-    if ($stmtCambiarEstado->affected_rows > 0) {
-        $mensaje = "Estado del alumno actualizado.";
-        if ($nuevoEstado == 2) {
-            $mensaje .= " Fecha de retiro establecida.";
-        }
+    // Actualizar la base de datos
+    $stmt = $conn->prepare("UPDATE ALUMNO SET STATUS = ? WHERE RUT_ALUMNO = ?");
+    $stmt->bind_param("is", $nuevoEstado, $rutAlumno);
+    $stmt->execute();
+
+    if ($stmt->affected_rows > 0) {
+        $mensaje = "Estado del alumno actualizado correctamente.";
     } else {
-        $mensaje = "No se pudo cambiar el estado del alumno.";
+        $mensaje = "Error al actualizar el estado del alumno.";
     }
-    $stmtCambiarEstado->close();
+    $stmt->close();
 }
+
 
 if (isset($_POST['eliminar_observacion'])) {
     // Recoge el ID de la observación a eliminar
@@ -436,9 +429,9 @@ if (isset($_POST['buscarAlumnoNombre'])) {
         <label>Estado:</label>
         <input type="text" class="form-control" name="estado" value="<?php echo isset($estadoAlumno) ? $estadoAlumno : ''; ?>" readonly>
         <!-- Agrega un campo oculto para enviar el estado actual -->
-        <input type="hidden" name="estadoActual" value="<?php echo isset($estadoAlumno) ? $estadoAlumno : ''; ?>">
-        <!-- Agrega el botón para cambiar el estado -->
-        <button type="submit" class="btn btn-secondary" name="cambiarEstado">Cambiar Estado</button>
+        <input type="hidden" name="rutAlumno" value="<?php echo $alumno['RUT_ALUMNO']; ?>">
+    <input type="hidden" name="estadoActual" value="<?php echo $alumno['STATUS']; ?>">
+    <button type="submit" name="cambiarEstado">Cambiar Estado</button>
     </div>
                 <div class="form-group">
         <label>Nombre:</label>
@@ -574,12 +567,9 @@ if (isset($_POST['buscarAlumnoNombre'])) {
         });
     });
 
-        // Aquí agregas el script para limpiar los campos después de la actualización
         <?php if ($actualizacionExitosa): ?>
             // Restablece los campos del formulario
             document.forms[0].reset();
-            // Aquí, document.forms[0] se refiere al primer formulario en tu página.
-            // Asegúrate de que este índice corresponda al formulario que deseas restablecer.
+            
         <?php endif; ?>
-    });
 </script>

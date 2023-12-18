@@ -98,8 +98,10 @@ if (isset($_POST['actualizar_apoderado'])) {
                 header("Location: https://antilen.pat-pac.cl/sistemaescolar/bienvenido.php?page=padres_apoderados");
                 exit;
             } else {
-                $mensaje = "Error al actualizar los datos.";
-                var_dump($conn);
+                $_SESSION['mensaje_exito'] = "No se realizaron cambios en los datos.";
+                header("Location: https://antilen.pat-pac.cl/sistemaescolar/bienvenido.php?page=padres_apoderados");
+                exit;
+
             }
         } else {
             // Si no hay cambios, envía un mensaje de éxito
@@ -173,52 +175,52 @@ if ($apoderado != null) {
 
                             <div class="form-group">
                                 <label for="parentesco">Parentesco</label>
-                                <input type="text" class="form-control" name="parentesco" value="<?php echo $apoderado['PARENTESCO']; ?>">
+                                <input type="text" class="form-control to-uppercase" name="parentesco" value="<?php echo $apoderado['PARENTESCO']; ?>">
                             </div>
 
                             <div class="form-group">
                                 <label for="nombre">RUT</label>
-                                <input type="text" class="form-control" name="rut" value="<?php echo $valorRut; ?>">
+                                <input type="text" class="form-control to-uppercase" name="rut" value="<?php echo $valorRut; ?>">
                             </div>
 
                             <div class="form-group">
                                 <label for="nombre">Nombre</label>
-                                <input type="text" class="form-control" name="nombre" value="<?php echo $apoderado['NOMBRE']; ?>">
+                                <input type="text" class="form-control to-uppercase" name="nombre" value="<?php echo $apoderado['NOMBRE']; ?>">
                             </div>
 
                             <div class="form-group">
                                 <label for="apellidoPaterno">Apellido Paterno</label>
-                                <input type="text" class="form-control" name="apellidoPaterno" value="<?php echo $apoderado['AP_PATERNO']; ?>">
+                                <input type="text" class="form-control to-uppercase" name="apellidoPaterno" value="<?php echo $apoderado['AP_PATERNO']; ?>">
                             </div>
 
                             <div class="form-group">
                                 <label for="apellidoMaterno">Apellido Materno</label>
-                                <input type="text" class="form-control" name="apellidoMaterno" value="<?php echo $apoderado['AP_MATERNO']; ?>">
+                                <input type="text" class="form-control to-uppercase" name="apellidoMaterno" value="<?php echo $apoderado['AP_MATERNO']; ?>">
                             </div>
 
                             <div class="form-group">
                                 <label for="fechaNac">Fecha de Nacimiento</label>
-                                <input type="text" class="form-control" id="fechaNac" name="fecha_nac" value="<?php echo $fechaNacFormatted; ?>">
+                                <input type="text" class="form-control to-uppercase" id="fechaNac" name="fecha_nac" value="<?php echo $fechaNacFormatted; ?>">
                             </div>
 
                             <div class="form-group">
                                 <label for="calle">Calle</label>
-                                <input type="text" class="form-control" name="calle" value="<?php echo $apoderado['CALLE']; ?>">
+                                <input type="text" class="form-control to-uppercase" name="calle" value="<?php echo $apoderado['CALLE']; ?>">
                             </div>
 
                             <div class="form-group">
                                 <label for="nCalle">Número de Calle</label>
-                                <input type="text" class="form-control" name="n_calle" value="<?php echo $apoderado['NRO_CALLE']; ?>">
+                                <input type="text" class="form-control to-uppercase" name="n_calle" value="<?php echo $apoderado['NRO_CALLE']; ?>">
                             </div>
 
                             <div class="form-group">
                                 <label for="obsDireccion">Observaciones de Dirección</label>
-                                <input type="text" class="form-control" name="obsDireccion" value="<?php echo $apoderado['OBS_DIRECCION']; ?>">
+                                <input type="text" class="form-control to-uppercase" name="obsDireccion" value="<?php echo $apoderado['OBS_DIRECCION']; ?>">
                             </div>
 
                             <div class="form-group">
                                 <label for="villaPoblacion">Villa/Población</label>
-                                <input type="text" class="form-control" name="villaPoblacion" value="<?php echo $apoderado['VILLA']; ?>">
+                                <input type="text" class="form-control to-uppercase" name="villaPoblacion" value="<?php echo $apoderado['VILLA']; ?>">
                             </div>
 
                             <div class="form-group">
@@ -271,6 +273,14 @@ if ($apoderado != null) {
         </div>
     </div>
     <script>
+        document.addEventListener('DOMContentLoaded', function() {
+        var inputs = document.querySelectorAll('.to-uppercase');
+        inputs.forEach(function(input) {
+            input.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+            });
+        });
+    });
     $(function() {
         $("#fechaNac").datepicker({
             dateFormat: "dd-mm-yy"

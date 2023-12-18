@@ -339,7 +339,7 @@ if (isset($_POST['buscarAlumnoNombre'])) {
     <form method="post">
     <div class="form-group">
         <label for="nombreAlumno">Nombre del alumno:</label>
-        <select class="form-control" id="nombreAlumno" name="nombreAlumno">
+        <select class="form-control to-uppercase" id="nombreAlumno" name="nombreAlumno">
     <?php foreach ($alumnos as $alumno): ?>
         <option value="<?php echo htmlspecialchars($alumno['ID_ALUMNO']); ?>"
             <?php echo ($alumno['ID_ALUMNO'] == $idAlumnoSeleccionado) ? 'selected' : ''; ?>>
@@ -360,7 +360,7 @@ if (isset($_POST['buscarAlumnoNombre'])) {
 
     <div class="form-group">
         <label for="apoderadoSeleccionado">Apoderado:</label>
-        <select class="form-control" id="apoderadoSeleccionado" name="apoderadoSeleccionado">
+        <select class="form-control to-uppercase" id="apoderadoSeleccionado" name="apoderadoSeleccionado">
             <?php foreach($listaApoderados as $apoderado): ?>
                 <option value="<?php echo htmlspecialchars($apoderado['ID_APODERADO']); ?>">
                     <?php echo htmlspecialchars($apoderado['AP_PATERNO'] . ' ' . $apoderado['AP_MATERNO'] . ' ' .  $apoderado['NOMBRE']); ?>
@@ -377,47 +377,47 @@ if (isset($_POST['buscarAlumnoNombre'])) {
 
         <div class="form-group">
             <label for="rut">RUT</label>
-            <input type="text" class="form-control" name="rut" id="rut" maxlength="10">
+            <input type="text" class="form-control to-uppercase" name="rut" id="rut" maxlength="10">
         </div>
         <div class="form-group">
             <label for="parentesco">Parentesco</label>
-            <input type="text" class="form-control" name="parentesco">
+            <input type="text" class="form-control to-uppercase" name="parentesco">
         </div>
         <div class="form-group">
             <label for="nombres">Nombre</label>
-            <input type="text" class="form-control" name="nombre">
+            <input type="text" class="form-control to-uppercase" name="nombre">
         </div>
         <div class="form-group">
             <label for="apellidoPaterno">Apellido Paterno</label>
-            <input type="text" class="form-control" name="apellidoPaterno">
+            <input type="text" class="form-control to-uppercase" name="apellidoPaterno">
         </div>
         <div class="form-group">
             <label for="apellidoMaterno">Apellido Materno</label>
-            <input type="text" class="form-control" name="apellidoMaterno">
+            <input type="text" class="form-control to-uppercase" name="apellidoMaterno">
         </div>
         <div class="form-group">
             <label>Fecha de Nacimiento:</label>
-            <input type="date" class="form-control" name="fecha_nac">
+            <input type="date" class="form-control to-uppercase" name="fecha_nac">
         </div>
         <div class="form-group">
             <label for="calle">Calle</label>
-            <input type="text" class="form-control" name="calle">
+            <input type="text" class="form-control to-uppercase" name="calle">
         </div>
         <div class="form-group">
             <label for="n_calle">N°</label>
-            <input type="text" class="form-control" name="n_calle">
+            <input type="text" class="form-control to-uppercase" name="n_calle">
         </div>
         <div class="form-group">
             <label for="restoDireccion">Resto Dirección</label>
-            <input type="text" class="form-control" name="obsDireccion">
+            <input type="text" class="form-control to-uppercase" name="obsDireccion">
         </div>
         <div class="form-group">
             <label for="villaPoblacion">Villa/Población</label>
-            <input type="text" class="form-control" name="villaPoblacion">
+            <input type="text" class="form-control to-uppercase" name="villaPoblacion">
         </div>
         <div class="form-group">
             <label for="comuna">Comuna</label>
-            <select class="form-control" name="comuna" id="comuna">
+            <select class="form-control to-uppercase" name="comuna" id="comuna">
                 <?php foreach ($comunas as $comuna): ?>
                     <option value="<?php echo htmlspecialchars($comuna['ID_COMUNA']); ?>">
                         <?php echo htmlspecialchars($comuna['NOM_COMUNA']); ?>
@@ -427,7 +427,7 @@ if (isset($_POST['buscarAlumnoNombre'])) {
         </div>
         <!-- <div class="form-group">
             <label for="ciudad">Region</label>
-            <input type="text" class="form-control" name="idRegion">
+            <input type="text" class="form-control to-uppercase" name="idRegion">
         </div> -->
         <div class="form-group">
             <label for="telefonoParticular">Teléfono Particular</label>
@@ -453,6 +453,14 @@ if (isset($_POST['buscarAlumnoNombre'])) {
 </form>
 </div>
 <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var inputs = document.querySelectorAll('.to-uppercase');
+        inputs.forEach(function(input) {
+            input.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+            });
+        });
+    });
     document.addEventListener('DOMContentLoaded', function() {
         var selectAlumno = document.getElementById('nombreAlumno');
         var inputIdAlumno = document.getElementById('idAlumnoHidden');

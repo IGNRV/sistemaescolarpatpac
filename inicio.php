@@ -1,5 +1,5 @@
 <div class="welcome-message text-center">
-    <h1 class="display-4">Bienvenido a la Aplicación</h1>
+    <h1 class="display-4">Bienvenido</h1>
     <p class="lead">Tu portal para la gestión escolar.</p>
     <hr class="my-4">
     <div class="button-container d-flex flex-wrap justify-content-center">
