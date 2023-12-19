@@ -113,6 +113,10 @@ if (isset($_POST['actualizar_datos'])) {
     // Recoge los datos del formulario
     $rutAlumno = $_POST['rutAlumno'];
     $rut = $_POST['rut'];
+    if (empty($rut)) {
+        $bytes = random_bytes(5); // 5 bytes generarán 10 caracteres en hexadecimal
+        $rut = bin2hex($bytes);
+    }
     $parentesco = $_POST['parentesco'];
     $nombre = $_POST['nombre'];
     $apellidoPaterno = $_POST['apellidoPaterno'];
@@ -231,6 +235,7 @@ if (isset($_SESSION['mensaje_exito'])) {
 }
 
 $idAlumnoSeleccionado = '';
+
 if (isset($_POST['buscarAlumnoNombre'])) {
     $idAlumnoSeleccionado = $_POST['nombreAlumno'];
 
@@ -259,10 +264,9 @@ if (isset($_POST['buscarAlumnoNombre'])) {
     $resultado = $stmt->get_result();
 
     if ($resultado->num_rows > 0) {
-        $mensaje = "Datos del alumno encontrados.";
+        $fila = $resultado->fetch_assoc();
+        $rutAlumno = $fila['RUT_ALUMNO']; // Actualiza la variable $rutAlumno con el RUT del alumno encontrado
         $apoderados = $resultado->fetch_all(MYSQLI_ASSOC);
-    } else {
-        $mensaje = "No se encontró ningún alumno con ese ID.";
     }
     $stmt->close();
 }
