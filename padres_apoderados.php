@@ -84,10 +84,9 @@ if (isset($_POST['eliminar_apoderado'])) {
     // Obtener el ID_APODERADO basado en el RUT_APODERADO
     $stmtObtenerIdApoderado = $conn->prepare("SELECT ID_APODERADO FROM APODERADO WHERE RUT_APODERADO = ?");
     $stmtObtenerIdApoderado->bind_param("s", $rutApoderado);
-    
-
     $stmtObtenerIdApoderado->execute();
     $resultadoIdApoderado = $stmtObtenerIdApoderado->get_result();
+
     if ($filaIdApoderado = $resultadoIdApoderado->fetch_assoc()) {
         $idApoderado = $filaIdApoderado['ID_APODERADO'];
 
@@ -99,6 +98,38 @@ if (isset($_POST['eliminar_apoderado'])) {
         // Verificar si se realizó correctamente la actualización
         if ($stmtEliminarRelacion->affected_rows > 0) {
             $mensaje = "Relaciones del apoderado eliminadas correctamente.";
+
+            // Obtener ID de usuario que realizó la acción
+            $EMAIL = $_SESSION['EMAIL'];
+            $queryUsuario = "SELECT ID FROM USERS WHERE EMAIL = '$EMAIL'";
+            $resultadoUsuario = $conn->query($queryUsuario);
+
+            if ($filaUsuario = $resultadoUsuario->fetch_assoc()) {
+                $idUsuario = $filaUsuario['ID'];
+
+                // Obtener ID_ALUMNO relacionado con el ID_APODERADO
+                $stmtObtenerIdAlumno = $conn->prepare("SELECT ID_ALUMNO FROM REL_ALUM_APOD WHERE ID_APODERADO = ?");
+                $stmtObtenerIdAlumno->bind_param("i", $idApoderado);
+                $stmtObtenerIdAlumno->execute();
+                $resultadoIdAlumno = $stmtObtenerIdAlumno->get_result();
+
+                if ($filaIdAlumno = $resultadoIdAlumno->fetch_assoc()) {
+                    $idAlumno = $filaIdAlumno['ID_ALUMNO'];
+
+                    // Registrar en HISTORIAL_CAMBIOS
+                    $stmtHistorial = $conn->prepare("INSERT INTO HISTORIAL_CAMBIOS (ID_USUARIO, TIPO_CAMBIO, ID_ALUMNO, ID_APODERADO) VALUES (?, ?, ?, ?)");
+                    $tipoCambio = "APODERADO DESACTIVADO";
+                    $stmtHistorial->bind_param("isii", $idUsuario, $tipoCambio, $idAlumno, $idApoderado);
+                    $stmtHistorial->execute();
+                    if ($stmtHistorial->affected_rows > 0) {
+                        // Éxito en la inserción en HISTORIAL_CAMBIOS
+                    } else {
+                        // Error en la inserción en HISTORIAL_CAMBIOS
+                    }
+                    $stmtHistorial->close();
+                }
+                $stmtObtenerIdAlumno->close();
+            }
         } else {
             $mensaje = "Error al eliminar las relaciones del apoderado.";
         }
@@ -176,6 +207,33 @@ if (isset($_POST['actualizar_datos'])) {
             $stmtRel->execute();
 
             $_SESSION['mensaje_exito'] = "Datos del apoderado actualizados correctamente.";
+
+            
+            
+            
+            if ($stmtRel->affected_rows > 0) {
+                // Obtener ID de usuario que realizó la acción
+                $resultadoUsuario = $conn->query($queryUsuario);
+                if ($filaUsuario = $resultadoUsuario->fetch_assoc()) {
+                    $idUsuario = $filaUsuario['ID'];
+
+                    $tipoCambio = "AGREGAR APODERADO POR INPUTS";
+                    $stmtHistorial = $conn->prepare("INSERT INTO HISTORIAL_CAMBIOS (ID_USUARIO, TIPO_CAMBIO, ID_ALUMNO, ID_APODERADO) VALUES (?, ?, ?, ?)");
+                    $stmtHistorial->bind_param("isii", $idUsuario, $tipoCambio, $idAlumno, $idApoderado);
+                    $stmtHistorial->execute();
+
+                    if ($stmtHistorial->affected_rows > 0) {
+                        // Éxito en la inserción en HISTORIAL_CAMBIOS
+                    } else {
+                        // Error en la inserción en HISTORIAL_CAMBIOS
+                    }
+                    $stmtHistorial->close();
+                }
+                $_SESSION['mensaje_exito'] = "Datos del apoderado actualizados y registrados en historial correctamente.";
+            } else {
+                $_SESSION['mensaje_error'] = "Error al actualizar los datos del apoderado.";
+            }
+            $stmtRel->close();
         } else {
             $mensaje = "Alumno no encontrado para el RUT proporcionado.";
         }
