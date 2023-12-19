@@ -1,6 +1,8 @@
 <?php
 // Incluye la conexión a la base de datos
 require_once 'db.php';
+ini_set('display_errors', 1);
+
 
 // Define una variable para el mensaje
 $mensaje = '';
@@ -62,12 +64,28 @@ if (isset($_POST['insertar_contacto'])) {
     $idContacto = $ultimoIDContacto + 1;
 
     // Insertar los datos en la tabla CONTACTO_EMERGENCIA
-$stmtInsertar = $conn->prepare("INSERT INTO CONTACTO_EMERGENCIA (ID_CONTACTO, RUT_APODERADO, ID_ALUMNO, PARENTESCO, NOMBRE, AP_PATERNO, AP_MATERNO, MAIL_EMERGENCIA, FONO_EMERGENCIA, FECHA_INGRESO, PERIODO_ESCOLAR, STATUS, DELETE_FLAG) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, 1, 0)");
-$stmtInsertar->bind_param("isissssssi", $idContacto, $rut, $idAlumno, $parentesco, $nombre, $apPaterno, $apMaterno, $mailEmergencia, $fonoEmergencia, $periodoEscolarId);
-$stmtInsertar->execute();
+    $stmtInsertar = $conn->prepare("INSERT INTO CONTACTO_EMERGENCIA (ID_CONTACTO, RUT_APODERADO, ID_ALUMNO, PARENTESCO, NOMBRE, AP_PATERNO, AP_MATERNO, MAIL_EMERGENCIA, FONO_EMERGENCIA, FECHA_INGRESO, PERIODO_ESCOLAR, STATUS, DELETE_FLAG) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, 1, 0)");
+    $stmtInsertar->bind_param("isissssssi", $idContacto, $rut, $idAlumno, $parentesco, $nombre, $apPaterno, $apMaterno, $mailEmergencia, $fonoEmergencia, $periodoEscolarId);
+    $stmtInsertar->execute();
 
     if ($stmtInsertar->affected_rows > 0) {
         $mensaje = "Contacto de emergencia agregado con éxito.";
+
+        // Obtener el ID del usuario actual
+        $stmtUsuario = $conn->prepare("SELECT ID FROM USERS WHERE EMAIL = ?");
+        $stmtUsuario->bind_param("s", $EMAIL);
+        $stmtUsuario->execute();
+        $resultadoUsuario = $stmtUsuario->get_result();
+        $filaUsuario = $resultadoUsuario->fetch_assoc();
+        $idUsuario = $filaUsuario['ID'];
+        $stmtUsuario->close();
+
+        // Insertar en HISTORIAL_CAMBIOS
+        $tipoCambio = "CONTACTO DE EMERGENCIA ANADIDO";
+        $stmtHistorial = $conn->prepare("INSERT INTO HISTORIAL_CAMBIOS (ID_USUARIO, TIPO_CAMBIO, ID_ALUMNO, ID_CONTACTO) VALUES (?, ?, ?, ?)");
+        $stmtHistorial->bind_param("isii", $idUsuario, $tipoCambio, $idAlumno, $idContacto);
+        $stmtHistorial->execute();
+        $stmtHistorial->close();
     } else {
         $mensaje = "Error al agregar el contacto de emergencia.";
     }
