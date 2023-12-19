@@ -239,37 +239,47 @@ $idAlumnoSeleccionado = '';
 if (isset($_POST['buscarAlumnoNombre'])) {
     $idAlumnoSeleccionado = $_POST['nombreAlumno'];
 
-    // Consulta a la base de datos para obtener información basada en ID_ALUMNO
-    $stmt = $conn->prepare("SELECT 
-                                a.ID_ALUMNO,
-                                a.RUT_ALUMNO,
-                                ap.RUT_APODERADO,
-                                ap.NOMBRE,
-                                ap.AP_PATERNO,
-                                ap.AP_MATERNO,
-                                ap.PARENTESCO,
-                                ap.MAIL_PART,
-                                ap.FONO_PART,
-                                raa.DELETE_FLAG
-                            FROM
-                                ALUMNO AS a
-                                    LEFT JOIN
-                                REL_ALUM_APOD AS raa ON raa.ID_ALUMNO = a.ID_ALUMNO
-                                    LEFT JOIN
-                                APODERADO AS ap ON ap.ID_APODERADO = raa.ID_APODERADO
-                            WHERE
-                                a.ID_ALUMNO = ? AND raa.DELETE_FLAG = 0");
-    $stmt->bind_param("i", $idAlumnoSeleccionado);
-    $stmt->execute();
-    $resultado = $stmt->get_result();
+    // Primero, obtener el RUT_ALUMNO basado en ID_ALUMNO seleccionado
+    $stmtRutAlumno = $conn->prepare("SELECT RUT_ALUMNO FROM ALUMNO WHERE ID_ALUMNO = ?");
+    $stmtRutAlumno->bind_param("i", $idAlumnoSeleccionado);
+    $stmtRutAlumno->execute();
+    $resultadoRutAlumno = $stmtRutAlumno->get_result();
 
-    if ($resultado->num_rows > 0) {
-        $fila = $resultado->fetch_assoc();
-        $rutAlumno = $fila['RUT_ALUMNO']; // Actualiza la variable $rutAlumno con el RUT del alumno encontrado
-        $apoderados = $resultado->fetch_all(MYSQLI_ASSOC);
+    if ($filaRutAlumno = $resultadoRutAlumno->fetch_assoc()) {
+        $rutAlumno = $filaRutAlumno['RUT_ALUMNO'];
+
+        // Luego, consulta para obtener los apoderados basados en RUT_ALUMNO
+        $stmt = $conn->prepare("SELECT 
+                                    a.ID_ALUMNO,
+                                    a.RUT_ALUMNO,
+                                    ap.RUT_APODERADO,
+                                    ap.NOMBRE,
+                                    ap.AP_PATERNO,
+                                    ap.AP_MATERNO,
+                                    ap.PARENTESCO,
+                                    ap.MAIL_PART,
+                                    ap.FONO_PART,
+                                    raa.DELETE_FLAG
+                                FROM
+                                    ALUMNO AS a
+                                        LEFT JOIN
+                                    REL_ALUM_APOD AS raa ON raa.ID_ALUMNO = a.ID_ALUMNO
+                                        LEFT JOIN
+                                    APODERADO AS ap ON ap.ID_APODERADO = raa.ID_APODERADO
+                                WHERE
+                                    a.RUT_ALUMNO = ? AND raa.DELETE_FLAG = 0");
+        $stmt->bind_param("s", $rutAlumno);
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+
+        if ($resultado->num_rows > 0) {
+            $apoderados = $resultado->fetch_all(MYSQLI_ASSOC);
+        }
+        $stmt->close();
     }
-    $stmt->close();
+    $stmtRutAlumno->close();
 }
+
 
 ?>
 
