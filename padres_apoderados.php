@@ -19,6 +19,8 @@ $EMAIL = $_SESSION['EMAIL'];
 $queryUsuario = "SELECT ID FROM USERS WHERE EMAIL = '$EMAIL'";
 $resultadoUsuario = $conn->query($queryUsuario);
 
+
+
 $apoderados = []; // Array para almacenar los datos de los apoderados
 $rutAlumno = ''; // Inicializa la variable $rutAlumno
 
@@ -214,6 +216,19 @@ if (isset($_POST['asignarApoderado'])) {
 
             if ($stmtRel->affected_rows > 0) {
                 $mensaje = "Apoderado asignado correctamente.";
+
+                // Obtener ID de usuario que realizó la acción
+                $resultadoUsuario = $conn->query($queryUsuario);
+                if ($filaUsuario = $resultadoUsuario->fetch_assoc()) {
+                    $idUsuario = $filaUsuario['ID'];
+
+                    // Registrar en HISTORIAL_CAMBIOS
+                    $stmtHistorial = $conn->prepare("INSERT INTO HISTORIAL_CAMBIOS (ID_USUARIO, TIPO_CAMBIO, ID_ALUMNO, ID_APODERADO) VALUES (?, ?, ?, ?)");
+                    $tipoCambio = "APODERADO ASIGNADO";
+                    $stmtHistorial->bind_param("isii", $idUsuario, $tipoCambio, $idAlumno, $idApoderadoSeleccionado);
+                    $stmtHistorial->execute();
+                    $stmtHistorial->close();
+                }
             } else {
                 $mensaje = "Error al asignar el apoderado.";
             }
