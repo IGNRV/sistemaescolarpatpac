@@ -89,6 +89,15 @@ if (isset($_POST['btnBuscarAlumno'])) {
             } elseif ($fila['CODIGO_PRODUCTO'] == 1) {
                 $cuotasPeriodoActual[] = $fila;
             }
+            // Imprime un script para establecer variables de JavaScript
+        echo "<script type='text/javascript'>";
+        echo "window.datosAlumno = {";
+        echo "rut: '{$fila['RUT_ALUMNO']}',";
+        echo "nombre: '{$fila['NOMBRE']}',";
+        echo "apellidoPaterno: '{$fila['AP_PATERNO']}',";
+        echo "apellidoMaterno: '{$fila['AP_MATERNO']}'";
+        echo "};";
+        echo "</script>";
         }
         $mensaje = "Datos encontrados.";
     } else {
@@ -113,6 +122,7 @@ if (isset($_POST['btnBuscarAlumno'])) {
 <?php if (!empty($mensaje)): ?>
     <div class="alert alert-info"><?php echo $mensaje; ?></div>
 <?php endif; ?>
+
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-10">
@@ -178,6 +188,8 @@ if (isset($_POST['btnBuscarAlumno'])) {
                             PAGADA
                         <?php elseif ($pago['ESTADO_PAGO'] == 3): ?>
                             DOCUMENTADA
+                        <?php elseif ($pago['ESTADO_PAGO'] == 4): ?>
+                            PAGO PARCIAL
                         <?php endif; ?>
                     </td>
                     <td>
@@ -230,6 +242,8 @@ if (isset($_POST['btnBuscarAlumno'])) {
                             PAGADA
                         <?php elseif ($pago['ESTADO_PAGO'] == 3): ?>
                             DOCUMENTADA
+                        <?php elseif ($pago['ESTADO_PAGO'] == 4): ?>
+                            PAGO PARCIAL
                         <?php endif; ?>
                     </td>
                     <td>
@@ -605,10 +619,21 @@ document.addEventListener('DOMContentLoaded', function() {
     var datosParaPDF = [];
     var totalAPagar = 0;
 
-    // Capturar las fechas de pago de los diferentes métodos
     var fechaPagoEfectivo = document.getElementById('fechaPagoEfectivo').value;
     var fechaDepositoCheque = document.getElementById('fechaDepositoCheque').value;
     var fechaPagoPos = document.getElementById('fechaPagoPos').value;
+    var rutAlumno = window.datosAlumno ? window.datosAlumno.rut : 'No disponible';
+    var nombreAlumno = window.datosAlumno ? window.datosAlumno.nombre : 'No disponible';
+    var apellidoPaterno = window.datosAlumno ? window.datosAlumno.apellidoPaterno : '';
+    var apellidoMaterno = window.datosAlumno ? window.datosAlumno.apellidoMaterno : '';
+
+    // Si es posible, obtener el nombre y apellido del alumno desde los datos obtenidos
+    // Nota: Debes ajustar este código para que coincida con la estructura de tus datos
+    if (window.datosAlumno) {
+        nombreAlumno = window.datosAlumno.nombre;
+        apellidoAlumno = window.datosAlumno.apellido;
+    }
+
 
 
     pagosSeleccionados.forEach(function(checkbox, index) {
@@ -635,29 +660,28 @@ document.addEventListener('DOMContentLoaded', function() {
     doc.setFontSize(18);
     doc.text('Recibo de Pagos', 14, 20);
     doc.setFontSize(12);
-    doc.text('Total: $' + totalAPagar.toFixed(0), 14, 30);
 
-    // Asegúrate de que el texto del folio tenga suficiente espacio y no sea tapado por la tabla
-    var espacioParaFolio = 10; // Espacio adicional para el folio
-    var posicionYFolio = 40;
-    doc.text('Número de Folio: ' + window.folioPago, 14, posicionYFolio);
+    var yPos = 30; // Posición inicial para el texto en el eje Y
 
-    // Agregar los montos de pago al PDF
-    var yPos = posicionYFolio + espacioParaFolio; // Ajusta la posición vertical según sea necesario
-    doc.text('Monto cancelado de la cuota en efectivo: $' + montoEfectivo, 14, yPos);
-    yPos += 10; // Incrementar la posición Y para el siguiente texto
-    doc.text('Monto cancelado de la cuota con POS: $' + montoPos, 14, yPos);
-    yPos += 10; // Incrementar la posición Y para el siguiente texto
-    doc.text('Monto cancelado de la cuota con Cheque: $' + montoCheque, 14, yPos);
-    yPos += 10; // Incrementar la posición Y para el siguiente texto
-    doc.text('Monto total cancelado: $' + (montoEfectivo + montoPos + montoCheque), 14, yPos);
+    // Añadir información del alumno al PDF
+    doc.text('RUT Alumno: ' + rutAlumno, 14, yPos);
+    yPos += 10;
+    doc.text('Nombre Alumno: ' + nombreAlumno + ' ' + apellidoPaterno + ' ' + apellidoMaterno, 14, yPos);
+    yPos += 10;
+    doc.text('Número de Folio: ' + window.folioPago, 14, yPos);
 
+    yPos += 10; // Incrementa la posición Y para la siguiente línea de texto
+    doc.text('Monto cancelado de la cuota en efectivo: $' + montoEfectivo.toFixed(0), 14, yPos);
+    yPos += 10; // Incrementa la posición Y para la siguiente línea de texto
+    doc.text('Monto cancelado de la cuota con POS: $' + montoPos.toFixed(0), 14, yPos);
+    yPos += 10; // Incrementa la posición Y para la siguiente línea de texto
+    doc.text('Monto cancelado de la cuota con Cheque: $' + montoCheque.toFixed(0), 14, yPos);
+    yPos += 10; // Incrementa la posición Y para la siguiente línea de texto
+    doc.text('Monto total cancelado: $' + (montoEfectivo + montoPos + montoCheque).toFixed(0), 14, yPos);
 
-    // Ajusta la posición de inicio de la tabla para que esté por debajo de los montos
-    var posicionInicioTabla = yPos + 10;
-
+    yPos += 10; // Incrementa la posición Y para la tabla
     doc.autoTable({
-        startY: posicionInicioTabla,
+        startY: yPos,
         head: [['Cuota', 'Fecha Vencimiento', 'Monto', 'Fecha de Pago', 'Estado']],
         body: datosParaPDF
     });

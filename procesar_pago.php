@@ -46,7 +46,16 @@ if (!empty($data['pagos'])) {
 
         // Actualizar HISTORIAL_PAGOS
         $nuevoValorPagado = $filaPago['VALOR_PAGADO'] + $pagoEfectivo + $pagoPos + $pagoCheque;
-        $estadoPago = ($nuevoValorPagado >= $filaPago['VALOR_A_PAGAR']) ? 2 : 1;
+
+        // Comprobar si el pago es completo o parcial
+        if ($nuevoValorPagado >= $filaPago['VALOR_A_PAGAR']) {
+            $estadoPago = 2; // Estado 2 = Pagado
+        } elseif ($nuevoValorPagado > 0) {
+            $estadoPago = 4; // Estado 4 = Pago parcial
+        } else {
+            $estadoPago = 1; // Estado 1 = Pendiente (o el estado que tenga actualmente)
+        }
+
         $stmtUpdate = $conn->prepare("UPDATE HISTORIAL_PAGOS SET VALOR_PAGADO = ?, ESTADO_PAGO = ? WHERE ID_PAGO = ?");
         $stmtUpdate->bind_param("dii", $nuevoValorPagado, $estadoPago, $pago['idPago']);
         $stmtUpdate->execute();
