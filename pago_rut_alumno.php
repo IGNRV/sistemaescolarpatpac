@@ -36,6 +36,9 @@ if (isset($_POST['btnBuscarAlumno'])) {
         hp.ID_PAGO,
         hp.ID_ALUMNO,
         a.RUT_ALUMNO,
+        a.NOMBRE,
+        a.AP_PATERNO,
+        a.AP_MATERNO,
         hp.CODIGO_PRODUCTO,
         hp.FOLIO_PAGO,
         hp.VALOR_ARANCEL,
@@ -602,13 +605,25 @@ document.addEventListener('DOMContentLoaded', function() {
     var datosParaPDF = [];
     var totalAPagar = 0;
 
+    // Capturar las fechas de pago de los diferentes métodos
+    var fechaPagoEfectivo = document.getElementById('fechaPagoEfectivo').value;
+    var fechaDepositoCheque = document.getElementById('fechaDepositoCheque').value;
+    var fechaPagoPos = document.getElementById('fechaPagoPos').value;
+
 
     pagosSeleccionados.forEach(function(checkbox, index) {
         var fila = checkbox.closest('tr');
         var cuota = fila.cells[0].innerText;
         var fechaVencimiento = fila.cells[1].innerText;
         var monto = parseFloat(fila.cells[2].innerText);
-        var fechaPago = fila.cells[4].innerText; // Añadir fecha de pago
+
+        // Determinar qué fecha de pago usar
+        var fechaPago;
+        if (montoEfectivo > 0) fechaPago = fechaPagoEfectivo;
+        else if (montoCheque > 0) fechaPago = fechaDepositoCheque;
+        else if (montoPos > 0) fechaPago = fechaPagoPos;
+        else fechaPago = 'N/A'; // En caso de que no se haya seleccionado un método de pago
+
         var estado = fila.cells[5].innerText; // Añadir estado del pago
 
         totalAPagar += monto;
@@ -692,9 +707,6 @@ document.addEventListener('DOMContentLoaded', function() {
     handleCheckboxChangesInTable('#tablaSaldoPeriodoAnterior');
     handleCheckboxChangesInTable('#tablaCuotasPeriodoActual');
 });
-
-// ... Resto de tu script ...
-
 
 </script>
 

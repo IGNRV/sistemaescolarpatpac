@@ -13,6 +13,13 @@ if (!isset($_SESSION['EMAIL'])) {
     exit;
 }
 
+
+$EMAIL = $_SESSION['EMAIL'];
+
+$queryUsuario = "SELECT ID FROM USERS WHERE EMAIL = '$EMAIL'";
+$resultadoUsuario = $conn->query($queryUsuario);
+
+
 $mensaje = '';
 $apoderado = null;
 
@@ -93,6 +100,29 @@ if (isset($_POST['actualizar_apoderado'])) {
             $stmtActualizar = $conn->prepare("UPDATE APODERADO SET PARENTESCO = ?, NOMBRE = ?, AP_PATERNO = ?, AP_MATERNO = ?, FECHA_NAC = ?, CALLE = ?, NRO_CALLE = ?, OBS_DIRECCION = ?, VILLA = ?, ID_COMUNA = ?, ID_REGION = ?, FONO_PART = ?, MAIL_PART = ?, MAIL_LAB = ?, TUTOR_ACADEMICO = ?, RUT_APODERADO = ?, TUTOR_ECONOMICO = ? WHERE RUT_APODERADO = ?");
             $stmtActualizar->bind_param("ssssssssssssssssis", $parentesco, $nombre, $apellidoPaterno, $apellidoMaterno, $fechaNac2, $calle, $nCalle, $obsDireccion, $villaPoblacion, $comuna, $idRegion, $fonoPart, $mailPart, $mailLab, $tutorAcademico, $rut, $tutorEconomico, $rutOriginal);
             $stmtActualizar->execute();
+
+            // Obtener el ID del usuario que inició sesión
+        $emailUsuario = $_SESSION['EMAIL'];
+        $queryUsuario = "SELECT ID FROM USERS WHERE EMAIL = ?";
+        $stmtUsuario = $conn->prepare($queryUsuario);
+        $stmtUsuario->bind_param("s", $emailUsuario);
+        $stmtUsuario->execute();
+        $resultadoUsuario = $stmtUsuario->get_result();
+        $usuario = $resultadoUsuario->fetch_assoc();
+        $idUsuario = $usuario['ID'];
+        $stmtUsuario->close();
+
+        // Obtener el ID del apoderado
+        $idApoderado = $apoderado['ID']; // Asumiendo que 'ID' es la columna que contiene el ID del apoderado
+
+        // Tipo de cambio
+        $tipoCambio = "INFORMACION DE APODERADO EDITADA";
+
+        // Insertar registro en HISTORIAL_CAMBIOS
+        $stmtHistorial = $conn->prepare("INSERT INTO HISTORIAL_CAMBIOS (ID_USUARIO, TIPO_CAMBIO, ID_APODERADO) VALUES (?, ?, ?)");
+        $stmtHistorial->bind_param("isi", $idUsuario, $tipoCambio, $idApoderado);
+        $stmtHistorial->execute();
+        $stmtHistorial->close();
             if ($stmtActualizar->affected_rows > 0) {
                 $_SESSION['mensaje_exito'] = "Datos del apoderado actualizados correctamente.";
                 header("Location: https://antilen.pat-pac.cl/sistemaescolar/bienvenido.php?page=padres_apoderados");
