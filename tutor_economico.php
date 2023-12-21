@@ -14,6 +14,9 @@ if (!isset($_SESSION['EMAIL'])) {
     exit;
 }
 
+$queryUsuario = "SELECT ID FROM USERS WHERE EMAIL = '$EMAIL'";
+$resultadoUsuario = $conn->query($queryUsuario);
+
 // Incluye la conexión a la base de datos
 require_once 'db.php';
 
@@ -225,7 +228,7 @@ if (!empty($mensaje)) {
 
 if (isset($_POST['ACTUALIZAR_DATOS'])) {
     $rutOriginal = $_POST['rut_original'];
-    $rutTutor = $_POST['rut']; // Asume que 'rut' es el nombre del campo en tu formulario
+    $rutTutor = $_POST['rut'];
     $nombreTutor = $_POST['nombre'];
     $apPaternoTutor = $_POST['apellido_paterno'];
     $apMaternoTutor = $_POST['apellido_materno'];
@@ -235,7 +238,7 @@ if (isset($_POST['ACTUALIZAR_DATOS'])) {
     $nCalle = $_POST['n_calle'];
     $restoDireccion = $_POST['resto_direccion'];
     $villaPoblacion = $_POST['villa_poblacion'];
-    $idComuna = $_POST['comuna']; // Asume que 'comuna' es el nombre del campo en tu formulario y que es un ID válido
+    $idComuna = $_POST['comuna'];
     $correoPersonal = $_POST['correo_electronico_particular'];
     $correoTrabajo = $_POST['correo_electronico_trabajo'];
     $tutorEconomico = isset($_POST['tutorEconomico']) ? 1 : 0;
@@ -277,8 +280,33 @@ if (isset($_POST['ACTUALIZAR_DATOS'])) {
 
     if ($stmtActualizar->affected_rows > 0) {
         $mensaje = "Datos del tutor económico actualizados correctamente.";
+
+        // Inserción en la tabla HISTORIAL_CAMBIOS
+        $EMAIL = $_SESSION['EMAIL'];
+        $queryUsuario = "SELECT ID FROM USERS WHERE EMAIL = '$EMAIL'";
+        $resultadoUsuario = $conn->query($queryUsuario);
+
+        if ($filaUsuario = $resultadoUsuario->fetch_assoc()) {
+            $idUsuario = $filaUsuario['ID'];
+
+            $stmtObtenerIdApoderado = $conn->prepare("SELECT ID_APODERADO FROM APODERADO WHERE RUT_APODERADO = ?");
+            $stmtObtenerIdApoderado->bind_param("s", $rutTutor);
+            $stmtObtenerIdApoderado->execute();
+            $resultadoIdApoderado = $stmtObtenerIdApoderado->get_result();
+
+            if ($filaIdApoderado = $resultadoIdApoderado->fetch_assoc()) {
+                $idApoderado = $filaIdApoderado['ID_APODERADO'];
+
+                $tipoCambio = "INFORMACION DE TUTOR ECONOMICO MODIFICADA";
+                $stmtHistorial = $conn->prepare("INSERT INTO HISTORIAL_CAMBIOS (ID_USUARIO, TIPO_CAMBIO, ID_APODERADO) VALUES (?, ?, ?)");
+                $stmtHistorial->bind_param("isi", $idUsuario, $tipoCambio, $idApoderado);
+                $stmtHistorial->execute();
+
+                $stmtHistorial->close();
+            }
+            $stmtObtenerIdApoderado->close();
+        }
     } else {
-        // Si no hay cambios, envía un mensaje de éxito
         $mensaje = "No se realizaron cambios en los datos del tutor económico.";
     }
     $stmtActualizar->close();
