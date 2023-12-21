@@ -113,7 +113,7 @@ if (isset($_POST['actualizar_apoderado'])) {
         $stmtUsuario->close();
 
         // Obtener el ID del apoderado
-        $idApoderado = $apoderado['ID']; // Asumiendo que 'ID' es la columna que contiene el ID del apoderado
+        $idApoderado = $apoderado['ID_APODERADO']; // Asumiendo que 'ID' es la columna que contiene el ID del apoderado
 
         // Tipo de cambio
         $tipoCambio = "INFORMACION DE APODERADO EDITADA";
