@@ -169,7 +169,7 @@ if (isset($_POST['btnBuscarAlumno'])) {
         </thead>
         <tbody>
             <?php foreach ($saldoPeriodoAnterior as $index => $pago): ?>
-                <?php if ($pago['ESTADO_PAGO'] != 2): // Omitir cuotas pagadas ?>
+               
 
                 <tr>
                     <td><?php echo $index + 1; ?></td>
@@ -200,7 +200,6 @@ if (isset($_POST['btnBuscarAlumno'])) {
                         <?php endif; ?>
                     </td>
                 </tr>
-                <?php endif; ?>
 
             <?php endforeach; ?>
         </tbody>
@@ -224,7 +223,6 @@ if (isset($_POST['btnBuscarAlumno'])) {
         </thead>
         <tbody>
             <?php foreach ($cuotasPeriodoActual as $index => $pago): ?>
-                <?php if ($pago['ESTADO_PAGO'] != 2): // Omitir cuotas pagadas ?>
 
                 <tr>
                     <td><?php echo $index + 1; ?></td>
@@ -254,7 +252,6 @@ if (isset($_POST['btnBuscarAlumno'])) {
                         <?php endif; ?>
                     </td>
                 </tr>
-                <?php endif; ?>
 
             <?php endforeach; ?>
         </tbody>
@@ -560,6 +557,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 var response = JSON.parse(xhr.responseText);
                 alert(response.mensaje);
                 window.folioPago = response.folioPago; // Almacena el folioPago para su uso posterior
+                window.estadosActualizados = response.estados; // Almacena los estados actualizados
                 generarPDF(montoEfectivo, montoPos, montoCheque);
             } else {
                 alert('Error al registrar el pago.');
@@ -570,48 +568,58 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 document.addEventListener('DOMContentLoaded', function() {
-        var checkboxes = document.querySelectorAll('.seleccionarPago');
+    inicializarCheckboxes();
+});
 
-        checkboxes.forEach(function(checkbox) {
-            checkbox.addEventListener('change', function() {
-                // Desactivar todos los otros checkboxes
-                checkboxes.forEach(function(otherCheckbox) {
-                    if (otherCheckbox !== checkbox) {
-                        otherCheckbox.disabled = checkbox.checked;
-                    }
-                });
-            });
+function inicializarCheckboxes() {
+    var checkboxes = document.querySelectorAll('.seleccionarPago');
+
+    // Establece el estado inicial correcto de los checkboxes
+    checkboxes.forEach(function(checkbox) {
+        var estadoPago = checkbox.closest('tr').cells[5].innerText.trim();
+        checkbox.disabled = estadoPago === 'PAGADA';
+    });
+
+    // Agrega los controladores de eventos
+    checkboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            manejarCambioCheckbox(checkbox, checkboxes);
+            calcularTotalAPagar();
         });
+    });
+}
 
-        // Función para calcular el total a pagar y actualizarlo cuando cambien las selecciones
-        function calcularTotalAPagar() {
-        var checkboxes = document.querySelectorAll('.seleccionarPago:checked');
-        var totalAPagar = 0;
-        checkboxes.forEach(function(checkbox) {
-            var fila = checkbox.closest('tr');
-            var valorAPagar = parseFloat(fila.cells[2].innerText); // VALOR_A_PAGAR
-            var valorPagado = parseFloat(fila.cells[3].innerText) || 0; // VALOR_PAGADO, o 0 si está vacío
-
-            totalAPagar += (valorAPagar - valorPagado); // Suma la diferencia
+function manejarCambioCheckbox(checkboxCambiado, todosLosCheckboxes) {
+    // Si un checkbox que no es 'PAGADA' se marca, desactiva todos los demás
+    if (checkboxCambiado.checked) {
+        todosLosCheckboxes.forEach(function(otroCheckbox) {
+            if (otroCheckbox !== checkboxCambiado) {
+                otroCheckbox.disabled = true;
+            }
         });
-
-        // Actualizar el elemento en el HTML
-        var totalAPagarElement = document.getElementById('totalAPagar');
-        totalAPagarElement.textContent = 'Total a Pagar $' + totalAPagar.toFixed(0);
+    } else {
+        // Si se desmarca un checkbox, reactiva todos los checkboxes hasta el primero con estado "PAGADA" o "DOCUMENTADA"
+        todosLosCheckboxes.forEach(function(otroCheckbox) {
+            var estadoPago = otroCheckbox.closest('tr').cells[5].innerText.trim();
+            otroCheckbox.disabled = estadoPago === 'PAGADA' || estadoPago === 'DOCUMENTADA';
+        });
     }
+}
 
-    // Agregar controlador de eventos a cada checkbox de pago
-    var checkboxesPago = document.querySelectorAll('.seleccionarPago');
-    checkboxesPago.forEach(function(checkbox) {
-        checkbox.addEventListener('change', calcularTotalAPagar);
+function calcularTotalAPagar() {
+    var checkboxes = document.querySelectorAll('.seleccionarPago:checked');
+    var totalAPagar = 0;
+    checkboxes.forEach(function(checkbox) {
+        var fila = checkbox.closest('tr');
+        var valorAPagar = parseFloat(fila.cells[2].innerText); // Monto a pagar
+        var valorPagado = parseFloat(fila.cells[3].innerText) || 0; // Valor ya pagado
+        totalAPagar += (valorAPagar - valorPagado);
     });
 
-    // Llamar a la función al cargar la página para establecer el total inicial
-    calcularTotalAPagar();
-        checkboxes.forEach(function(checkbox) {
-            checkbox.addEventListener('change', calcularTotalAPagar);
-        });
-    });
+    var totalAPagarElement = document.getElementById('totalAPagar');
+    totalAPagarElement.textContent = 'Total a Pagar $' + totalAPagar.toFixed(0);
+}
+
 
     function generarPDF(montoEfectivo, montoPos, montoCheque) {
     var doc = new jspdf.jsPDF();
@@ -638,6 +646,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
     pagosSeleccionados.forEach(function(checkbox, index) {
         var fila = checkbox.closest('tr');
+        var idPago = checkbox.getAttribute('data-id-pago');
+        var estadoActualizado = window.estadosActualizados[idPago] || fila.cells[5].innerText; // Usa el estado actualizado si está disponible
+        var estadoParaMostrar;
+
+        // Convierte el estado actualizado a un string legible
+        switch(estadoActualizado) {
+            case 2:
+                estadoParaMostrar = 'PAGADA';
+                break;
+            case 4:
+                estadoParaMostrar = 'PAGO PARCIAL';
+                break;
+            default:
+                estadoParaMostrar = fila.cells[5].innerText; // El texto original si no es 2 o 4
+        }
+
         var cuota = fila.cells[0].innerText;
         var fechaVencimiento = fila.cells[1].innerText;
         var monto = parseFloat(fila.cells[2].innerText);
@@ -654,7 +678,7 @@ document.addEventListener('DOMContentLoaded', function() {
         totalAPagar += monto;
 
         // Agregar datos adicionales al array
-        datosParaPDF.push([cuota, fechaVencimiento, monto.toFixed(0), fechaPago, estado]);
+        datosParaPDF.push([cuota, fechaVencimiento, monto.toFixed(0), fechaPago, estadoParaMostrar]);
     });
 
     doc.setFontSize(18);
@@ -695,42 +719,48 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 document.addEventListener('DOMContentLoaded', function() {
-    // Función para manejar los cambios en los checkboxes de una tabla
-    function handleCheckboxChangesInTable(tableSelector) {
-        var checkboxes = Array.from(document.querySelectorAll(tableSelector + ' .seleccionarPago'));
-        var lastCheckedIndex = null;
+    var checkboxes = Array.from(document.querySelectorAll('.seleccionarPago'));
+    var lastCheckedIndex = -1; // Comienza con -1 para indicar que no se ha seleccionado ninguna cuota aún
 
-        checkboxes.forEach(function(checkbox, index) {
-            checkbox.addEventListener('change', function() {
-                if (checkbox.checked) {
-                    lastCheckedIndex = index;
-                    // Habilitar el siguiente checkbox
-                    if (index + 1 < checkboxes.length) {
-                        checkboxes[index + 1].disabled = false;
-                    }
-                } else {
-                    if (index <= lastCheckedIndex) {
-                        // Deshabilitar todos los checkboxes posteriores
-                        for (var i = index + 1; i < checkboxes.length; i++) {
-                            checkboxes[i].checked = false;
-                            checkboxes[i].disabled = true;
-                        }
-                        lastCheckedIndex = index - 1;
-                    }
-                }
-            });
+    // Deshabilita todos los checkboxes por defecto
+    checkboxes.forEach(function(checkbox) {
+        checkbox.disabled = true;
+    });
 
-            // Inicialmente, deshabilitar todos los checkboxes excepto el primero
-            if (index > 0) {
-                checkbox.disabled = true;
-            }
-        });
+    // Habilita los checkboxes desde la cuota más atrasada hasta la primera cuota no pagada completamente
+    for (var i = 0; i < checkboxes.length; i++) {
+        var estadoPago = checkboxes[i].closest('tr').cells[5].innerText.trim();
+        if (estadoPago !== 'PAGADA' && estadoPago !== 'DOCUMENTADA') {
+            checkboxes[i].disabled = false;
+            lastCheckedIndex = i; // Actualiza el índice del último checkbox habilitado
+            break; // Detiene el bucle después de habilitar el primer checkbox permitido
+        }
     }
 
-    // Llamar a la función para cada tabla
-    handleCheckboxChangesInTable('#tablaSaldoPeriodoAnterior');
-    handleCheckboxChangesInTable('#tablaCuotasPeriodoActual');
+    // Evento para manejar los cambios en los checkboxes
+    checkboxes.forEach(function(checkbox, index) {
+        checkbox.addEventListener('change', function() {
+            if (checkbox.checked) {
+                lastCheckedIndex = index; // Actualiza el índice del último checkbox marcado
+                // Habilita el siguiente checkbox si no está pagado completamente
+                if (index + 1 < checkboxes.length) {
+                    var nextCheckboxState = checkboxes[index + 1].closest('tr').cells[5].innerText.trim();
+                    if (nextCheckboxState !== 'PAGADA' && nextCheckboxState !== 'DOCUMENTADA') {
+                        checkboxes[index + 1].disabled = false;
+                    }
+                }
+            } else {
+                // Si se desmarca un checkbox, deshabilita todos los siguientes
+                for (var i = index + 1; i < checkboxes.length; i++) {
+                    checkboxes[i].checked = false;
+                    checkboxes[i].disabled = true;
+                }
+                lastCheckedIndex = index - 1; // Actualiza el índice para el último checkbox marcado
+            }
+        });
+    });
 });
+
 
 </script>
 

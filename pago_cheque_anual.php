@@ -100,7 +100,16 @@ if (isset($_SESSION['pagoRegistrado'])) {
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
-    
+    <style>
+.visuallyhidden {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+
+</style>
 </head>
 <body>
 <?php if (!empty($mensaje)): ?>
@@ -158,7 +167,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
             <th>N° Cuota</th>
             <th>Fecha Vencimiento</th>
             <th>Monto Cuota</th>
-            <th>Banco Cheque</th>
+            <th class="visuallyhidden">Banco Cheque</th>
             <th>N° Documento Cheque</th>
             <th>Monto Cheque</th>
             <th>Fecha Emisión Cheque</th>
@@ -178,7 +187,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
                     <td><?php echo $index + 1; ?></td>
                     <td><?php echo htmlspecialchars($pago['FECHA_VENCIMIENTO']); ?></td>
                     <td><?php echo htmlspecialchars($pago['VALOR_A_PAGAR']); ?></td>
-                    <td>
+                    <td class="visuallyhidden">
                     <select class="form-control selectBanco" name="bancoCheque[]">
                     <?php foreach($bancos as $nombreBanco): ?>
                         <option value="<?php echo htmlspecialchars($nombreBanco); ?>">
@@ -238,7 +247,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
             <th>N° Cuota</th>
             <th>Fecha Vencimiento</th>
             <th>Monto Cuota</th>
-            <th>Banco Cheque</th>
+            <th class="visuallyhidden">Banco Cheque</th>
             <th>N° Documento Cheque</th>
             <th>Monto Cheque</th>
             <th>Fecha Emisión Cheque</th>
@@ -258,7 +267,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
                     <td><?php echo $index + 1; ?></td>
                     <td><?php echo htmlspecialchars($pago['FECHA_VENCIMIENTO']); ?></td>
                     <td><?php echo htmlspecialchars($pago['VALOR_A_PAGAR']); ?></td>
-                    <td>
+                    <td class="visuallyhidden">
                     <select class="form-control selectBanco" name="bancoCheque[]">
                     <?php foreach($bancos as $nombreBanco): ?>
                         <option value="<?php echo htmlspecialchars($nombreBanco); ?>">

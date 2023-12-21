@@ -31,12 +31,12 @@ if ($resultadoUsuario->num_rows > 0) {
         $nombre_foto = $fila['PHOTO'] ? $fila['PHOTO'] : '22_Profile.jpg';
 
         // Construir la URL completa de la foto
-        $url_foto = "https://antilen.pat-pac.cl/sistemaescolarstaging/fperfil/$nombre_foto";
+        $url_foto = "https://antilen.pat-pac.cl/sistemaescolar/fperfil/$nombre_foto";
         $foto_de_alumno = $url_foto;
     } else {
         // Asignar la foto de perfil por defecto si no hay foto en la base de datos
         $nombre_foto = "22_Profile.jpg";
-        $foto_de_alumno = "https://antilen.pat-pac.cl/sistemaescolarstaging/fperfil/$nombre_foto";
+        $foto_de_alumno = "https://antilen.pat-pac.cl/sistemaescolar/fperfil/$nombre_foto";
     }
 }
 
@@ -45,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_FILES["nueva_foto"])) {
     $nombre_foto = $_FILES["nueva_foto"]["name"];
     
     // Mover la nueva foto a la carpeta de perfil
-    move_uploaded_file($nombre_temporal, "/var/www/html/sistemaescolarstaging/fperfil/$nombre_foto");
+    move_uploaded_file($nombre_temporal, "/var/www/html/sistemaescolar/fperfil/$nombre_foto");
     
     // Actualizar el nombre de la foto en la base de datos
     $queryActualizarFoto = "UPDATE USERS SET PHOTO = '$nombre_foto' WHERE ID = $id_usuario";

@@ -3,6 +3,9 @@ require_once 'db.php'; // Asegúrate de que este es el camino correcto hacia tu 
 
 $data = json_decode(file_get_contents('php://input'), true);
 
+$estadosActualizados = [];
+
+
 if (!empty($data['pagos'])) {
     $adicionales = $data['adicionales'];
     $folioPago = obtenerUltimoFolioPago($conn);
@@ -59,9 +62,11 @@ if (!empty($data['pagos'])) {
         $stmtUpdate = $conn->prepare("UPDATE HISTORIAL_PAGOS SET VALOR_PAGADO = ?, ESTADO_PAGO = ? WHERE ID_PAGO = ?");
         $stmtUpdate->bind_param("dii", $nuevoValorPagado, $estadoPago, $pago['idPago']);
         $stmtUpdate->execute();
+        $estadosActualizados[$pago['idPago']] = $estadoPago;
+
     }
 
-    echo json_encode(['mensaje' => 'Pago registrado con éxito.', 'folioPago' => $folioPago]);
+    echo json_encode(['mensaje' => 'Pago registrado con éxito.', 'folioPago' => $folioPago, 'estados' => $estadosActualizados]);
 } else {
     echo json_encode(['mensaje' => 'No hay pagos para procesar.']);
 }

@@ -9,13 +9,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $conn->begin_transaction(); // Iniciar una transacción
 
     try {
+        $stmtFolio = $conn->prepare("SELECT FOLIO_PAGO FROM DETALLES_TRANSACCION ORDER BY FOLIO_PAGO DESC LIMIT 1");
+        $stmtFolio->execute();
+        $resultFolio = $stmtFolio->get_result();
+        $ultimoFolio = $resultFolio->fetch_assoc();
+        $folioActual = isset($ultimoFolio['FOLIO_PAGO']) ? $ultimoFolio['FOLIO_PAGO'] : 0; // Si no hay filas, empieza desde 0
+        $stmtFolio->close();
         foreach ($data->pagos as $pago) {
+            $folioActual++;
             $fechaEmision = new DateTime($pago->fechaEmision);
             $fechaCobro = $fechaEmision->modify('+1 day')->format('Y-m-d');
             $stmt = $conn->prepare("INSERT INTO DETALLES_TRANSACCION 
-        (ANO, VALOR, FECHA_PAGO, MEDIO_DE_PAGO, ESTADO, TIPO_DOCUMENTO, NUMERO_DOCUMENTO, FECHA_EMISION, FECHA_COBRO, BANCO, N_CUOTAS, ID_PAGO, CTA_CORRIENTE) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("idssisssssisi", 
+            (FOLIO_PAGO, ANO, VALOR, FECHA_PAGO, MEDIO_DE_PAGO, ESTADO, TIPO_DOCUMENTO, NUMERO_DOCUMENTO, FECHA_EMISION, FECHA_COBRO, BANCO, N_CUOTAS, ID_PAGO, CTA_CORRIENTE) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+        $stmt->bind_param("iidssisssssisi", 
+                $folioActual,
                 $pago->ano,
                 $pago->monto,
                 $pago->fechaPago,
