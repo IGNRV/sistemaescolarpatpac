@@ -193,8 +193,6 @@ if (isset($_POST['INGRESAR_DATOS'])) {
     $tipoMedioPago = $_POST['tipoMedioPago'];
     $rutPagador = $_POST['rut']; // Utiliza el valor del input 'rut' del formulario
 
-
-
     // Obtener el último número de medio de pago y aumentarlo en 1
     $stmt = $conn->prepare("SELECT MAX(NRO_MEDIOPAGO) AS ultimo_numero FROM MEDIOS_DE_PAGO");
     $stmt->execute();
@@ -216,6 +214,33 @@ if (isset($_POST['INGRESAR_DATOS'])) {
 
     if ($stmt->affected_rows > 0) {
         $mensaje = "Datos del medio de pago ingresados con éxito.";
+
+        // Inserción en la tabla HISTORIAL_CAMBIOS
+        $EMAIL = $_SESSION['EMAIL'];
+        $queryUsuario = "SELECT ID FROM USERS WHERE EMAIL = '$EMAIL'";
+        $resultadoUsuario = $conn->query($queryUsuario);
+
+        if ($filaUsuario = $resultadoUsuario->fetch_assoc()) {
+            $idUsuario = $filaUsuario['ID'];
+
+            // Suponiendo que $rutPagador es el RUT del tutor económico
+            $stmtObtenerIdApoderado = $conn->prepare("SELECT ID_APODERADO FROM APODERADO WHERE RUT_APODERADO = ?");
+            $stmtObtenerIdApoderado->bind_param("s", $rutPagador);
+            $stmtObtenerIdApoderado->execute();
+            $resultadoIdApoderado = $stmtObtenerIdApoderado->get_result();
+
+            if ($filaIdApoderado = $resultadoIdApoderado->fetch_assoc()) {
+                $idApoderado = $filaIdApoderado['ID_APODERADO'];
+
+                $tipoCambio = "INGRESO DE DATOS DE MEDIOS DE PAGO";
+                $stmtHistorial = $conn->prepare("INSERT INTO HISTORIAL_CAMBIOS (ID_USUARIO, TIPO_CAMBIO, ID_APODERADO) VALUES (?, ?, ?)");
+                $stmtHistorial->bind_param("isi", $idUsuario, $tipoCambio, $idApoderado);
+                $stmtHistorial->execute();
+
+                $stmtHistorial->close();
+            }
+            $stmtObtenerIdApoderado->close();
+        }
     } else {
         $mensaje = "Error al ingresar los datos del medio de pago.";
     }
