@@ -1,7 +1,7 @@
 <?php
 require_once 'db.php';
-/* error_reporting(E_ALL);
-ini_set('display_errors', 1); */
+
+session_start();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Recuperar los datos del formulario
@@ -9,7 +9,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $descuentoBeca = $_POST['descuentoBeca'];
     $otrosDescuentos = $_POST['otrosDescuentos'];
     $valorAPagar = $_POST['valorAPagar'];
-    $rutAlumnoBuscado = $_POST['rutAlumnoBuscado']; // Asegúrate de que este valor se está enviando correctamente desde becas.php
+    $rutAlumnoBuscado = $_POST['rutAlumnoBuscado'];
     $descuentoSeleccionado = $_POST['descuentoSeleccionado'];
     $periodoEscolarSeleccionado = $_POST['periodoEscolarSeleccionado'];
 
@@ -49,10 +49,41 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $insertStmt->execute();
 
     if ($insertStmt->affected_rows > 0) {
-        echo "Inserción exitosa en BECAS";
+        echo "Inserción exitosa en BECAS<br />";
     } else {
-        echo "Error en la inserción en BECAS: " . $insertStmt->error;
+        echo "Error en la inserción en BECAS: " . $insertStmt->error . "<br />";
     }
     $insertStmt->close();
+
+    // Obtener el ID del usuario actual
+    $EMAIL = $_SESSION['EMAIL'];
+    $queryUsuario = "SELECT ID FROM USERS WHERE EMAIL = ?";
+    $stmtUsuario = $conn->prepare($queryUsuario);
+    $stmtUsuario->bind_param("s", $EMAIL);
+    $stmtUsuario->execute();
+    $resultadoUsuario = $stmtUsuario->get_result();
+    $idUsuario = null;
+    if ($filaUsuario = $resultadoUsuario->fetch_assoc()) {
+        $idUsuario = $filaUsuario['ID'];
+    }
+    $stmtUsuario->close();
+
+    if (!$idUsuario) {
+        echo "No se pudo obtener el ID del usuario.<br />";
+        exit; // Detener la ejecución si no se encuentra el usuario
+    }
+
+    // Insertar en la tabla HISTORIAL_CAMBIOS
+    $tipoCambio = "REGISTRO DE BECA"; // Asegúrate de que este string sea adecuado para tu aplicación
+    $stmtHistorial = $conn->prepare("INSERT INTO HISTORIAL_CAMBIOS (ID_USUARIO, TIPO_CAMBIO, ID_ALUMNO) VALUES (?, ?, ?)");
+    $stmtHistorial->bind_param("isi", $idUsuario, $tipoCambio, $idAlumno);
+    $stmtHistorial->execute();
+
+    if ($stmtHistorial->affected_rows > 0) {
+        echo "Registro exitoso en HISTORIAL_CAMBIOS<br />";
+    } else {
+        echo "Error en el registro en HISTORIAL_CAMBIOS: " . $stmtHistorial->error . "<br />";
+    }
+    $stmtHistorial->close();
 }
 ?>
