@@ -3,6 +3,20 @@ require_once 'db.php';
 
 session_start();
 
+// Función para validar la contraseña
+function validarPassword($password) {
+    if (strlen($password) < 8) {
+        return "La contraseña debe tener al menos 8 caracteres.";
+    }
+    if (!preg_match("/\d/", $password)) {
+        return "La contraseña debe incluir al menos un número.";
+    }
+    if (!preg_match("/[#\$%\^&]/", $password)) {
+        return "La contraseña debe incluir al menos un símbolo (#, $, %, etc.).";
+    }
+    return "";
+}
+
 
 // Verifica si el usuario está logueado y obtiene su id
 if (!isset($_SESSION['EMAIL'])) {
@@ -40,10 +54,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $correo_electronico = $conn->real_escape_string($_POST['correo_electronico']);
     $password = $conn->real_escape_string($_POST['password']);
     $confirmPassword = $conn->real_escape_string($_POST['confirmPassword']);
-    $tipoUsuarioId = $conn->real_escape_string($_POST['tipoUsuario']);
 
-
-    if ($password === $confirmPassword) {
+    // Validación de la contraseña
+    $validacionPassword = validarPassword($password);
+    if ($validacionPassword !== "") {
+        $errorMsg = $validacionPassword;
+    } elseif ($password === $confirmPassword) {
         $passwordEncriptada = password_hash($password, PASSWORD_DEFAULT); // Encriptación de la contraseña
 
         // Verifica si el correo electrónico ya está registrado
@@ -54,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $errorMsg = "El usuario ya existe con ese correo electrónico.";
         } else {
             // Inserta el nuevo usuario en la base de datos
-            $insertUser = "INSERT INTO USERS (NAME, EMAIL, USERNAME, PASSWORD, PHOTO, STATUS, TIPO_USUARIO) VALUES ('{$nombre}', '{$correo_electronico}', '{$usuario}', '{$passwordEncriptada}', '22_Profile.jpg', 'ACTIVO', '{$tipoUsuarioId}')";
+            $insertUser = "INSERT INTO USERS (NAME, EMAIL, USERNAME, PASSWORD, PHOTO, STATUS) VALUES ('{$nombre}', '{$correo_electronico}', '{$usuario}', '{$passwordEncriptada}', '22_Profile.jpg', 'ACTIVO')";
             if ($conn->query($insertUser) === TRUE) {
                 header('Location: login.php');
                 exit;
@@ -66,7 +82,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $errorMsg = "Las contraseñas no coinciden.";
     }
 }
-// Aquí va el resto del código HTML para tu formulario
 ?>
 
 
