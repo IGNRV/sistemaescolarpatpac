@@ -75,6 +75,7 @@ if (isset($_POST['buscarAlumno'])) {
         $mensaje = "Alumno y contacto de emergencia encontrados.";
         // Buscar antecedentes médicos del alumno encontrado
         $resultadoAntecedentes = buscarAntecedentes($conn, $contactoEmergencia['RUT_ALUMNO']);
+        $mostrarResultados = true; // Cambiar a true cuando se realiza la búsqueda
     } else {
         $mensaje = "Alumno no encontrado.";
         $resultadoAntecedentes = null;
@@ -92,6 +93,7 @@ if (isset($_POST['buscarAlumnoNombre'])) {
     if ($resultadoBusqueda->num_rows > 0) {
         $contactoEmergencia = $resultadoBusqueda->fetch_assoc();
         $mensaje = "Alumno y contacto de emergencia encontrados.";
+        $mostrarResultados = true; // Cambiar a true cuando se realiza la búsqueda
 
         // Buscar antecedentes médicos del alumno encontrado
         $resultadoAntecedentes = buscarAntecedentesPorNombre($conn, $contactoEmergencia['ID_ALUMNO']);
@@ -220,6 +222,8 @@ $stmtAlumnos->close();
             <input type="text" class="form-control" id="rutAlumno" name="rutAlumno" placeholder="Ingrese RUT del alumno" value="<?php echo htmlspecialchars($rutAlumno); ?>">
             <button type="submit" class="btn btn-primary custom-button mt-3" name="buscarAlumno">Buscar</button>
         </div>
+    <?php if ($mostrarResultados): ?>
+
             <div class="form-row">
                 <div class="form-group col-md-12">
                     <label for="inputRUT">RUT (Sin puntos ni guion)</label>
@@ -328,6 +332,8 @@ $stmtAlumnos->close();
         <!-- Tabla de antecedentes médicos -->
     </div>
 </div>
+<?php endif; ?>
+
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
