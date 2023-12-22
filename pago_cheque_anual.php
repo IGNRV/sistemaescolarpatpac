@@ -21,6 +21,8 @@ $mostrarElementos = false;
 
 if (isset($_POST['btnBuscarAlumno'])) {
     $rutAlumno = $_POST['rutAlumno'];
+    $nombreAlumno = $_POST['rutAlumno'];
+    $apellidoAlumno = $_POST['rutAlumno'];
     $fechaActual = date('Y-m-d');
 
     // Consulta a la base de datos
@@ -28,6 +30,9 @@ if (isset($_POST['btnBuscarAlumno'])) {
     hp.ID_PAGO,
     hp.ID_ALUMNO,
     a.RUT_ALUMNO,
+    a.NOMBRE,
+    a.AP_PATERNO,
+    a.AP_MATERNO,
     hp.CODIGO_PRODUCTO,
     hp.FOLIO_PAGO,
     hp.VALOR_ARANCEL,
@@ -63,6 +68,11 @@ ORDER BY
     $resultado = $stmt->get_result();
 
     if ($resultado->num_rows > 0) {
+        $fila = $resultado->fetch_assoc(); // Obtén la primera fila del resultado
+        $nombreAlumno = $fila['NOMBRE']; // Asigna el nombre del alumno
+        $apellidoAlumno = $fila['AP_PATERNO'] . ' ' . $fila['AP_MATERNO']; // Asigna los apellidos del alumno
+        $resultado->data_seek(0); // Reinicia el puntero del resultado para el bucle while
+
         while ($fila = $resultado->fetch_assoc()) {
             $fechaVencimiento = new DateTime($fila['FECHA_VENCIMIENTO']);
             if ($fechaVencimiento < new DateTime($fechaActual) && $fila['ESTADO_PAGO'] == 0) {
@@ -81,6 +91,15 @@ ORDER BY
             }
         }
         $mensaje = "Datos encontrados.";
+        ?>
+<script>
+        var datosAlumno = {
+            rut: '<?php echo htmlspecialchars($rutAlumno); ?>',
+            nombre: '<?php echo htmlspecialchars($nombreAlumno); ?>',
+            apellido: '<?php echo htmlspecialchars($apellidoAlumno); ?>'
+        };
+</script>
+<?php
     } else {
         $mensaje = "No se encontraron datos para el RUT ingresado.";
     }
@@ -644,13 +663,17 @@ function generarPDF(datos) {
     doc.setFontSize(18);
     doc.text('Recibo de Pagos', 14, 20);
     doc.setFontSize(12);
-    doc.text('Total: $' + total.toFixed(0), 14, 30);
+    doc.text('Alumno: ' + datosAlumno.nombre + ' ' + datosAlumno.apellido, 14, 30);
+    doc.text('RUT: ' + datosAlumno.rut, 14, 40);
+    doc.text('Total: $' + total.toFixed(0), 14, 50);
+
 
     doc.autoTable({ 
-        startY: 35,
-        head: [['Cuota', 'Fecha Vencimiento', 'Monto Cuota', 'Banco Cheque', 'Número Documento', 'Monto Cheque', 'Fecha Emisión'/* , 'Fecha Depósito' */]],
+        startY: 60,
+        head: [['Cuota', 'Fecha Vencimiento', 'Monto Cuota', 'Banco Cheque', 'Número Documento', 'Monto Cheque', 'Fecha Emisión']],
         body: datos.map(pago => [pago['Cuota'], pago['Fecha Vencimiento'], pago['Monto Cuota'], pago['Banco Cheque'], pago['Número Documento'], pago['Monto Cheque'], pago['Fecha Emisión']])
     });
+
 
     // Guardar el PDF
     doc.save('recibo_pagos_cuotas.pdf');

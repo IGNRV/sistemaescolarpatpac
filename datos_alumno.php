@@ -476,6 +476,9 @@ if (isset($_POST['buscarAlumnoNombre'])) {
 
 
 ?>
+
+<h1 class="text-center">Datos del alumno</h1>
+
 <?php if (!empty($mensaje)): ?>
     <div class="alert alert-success" role="alert">
         <?php echo $mensaje; ?>
@@ -504,7 +507,6 @@ if (isset($_POST['buscarAlumnoNombre'])) {
 <?php if ($mostrarResultados): ?>
 
 
-<h1 class="text-center">Datos del alumno</h1>
             <!-- Formulario de datos del alumno -->
             <form action="" method="post">
                 <input type="hidden" name="rut" value="<?php echo $rut; ?>">

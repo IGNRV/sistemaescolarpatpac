@@ -369,6 +369,8 @@ while ($fila = $resultadoAlumnos->fetch_assoc()) {
 }
 $stmtAlumnos->close();
 ?>
+<h1 class="text-center">Tutor Económico</h1>
+
 <div class="tutor-economico">
     <form method="post">
         <div class="form-group">
