@@ -104,6 +104,7 @@ if (isset($_POST['btnBuscarAlumno'])) {
         $mensaje = "No se encontraron datos para el RUT ingresado.";
     }
     $stmt->close();
+    $mostrarResultados = true; // Cambiar a true cuando se realiza la búsqueda
 }
 ?>
 <!DOCTYPE html>
@@ -153,6 +154,7 @@ if (isset($_POST['btnBuscarAlumno'])) {
 <div id="datosAlumnos">
     <!-- Las tablas generadas se insertarán aquí -->
 </div>
+<?php if ($mostrarResultados): ?>
 <div class="mt-4 table-responsive">
     <h4>Saldo Periodo Anterior</h4>
     <table class="table" id="tablaSaldoPeriodoAnterior">
@@ -205,8 +207,11 @@ if (isset($_POST['btnBuscarAlumno'])) {
         </tbody>
     </table>
 </div>
+<?php endif; ?>
 
 <!-- Tabla de cuotas del periodo actual -->
+<?php if ($mostrarResultados): ?>
+
 <div class="mt-4 table-responsive">
     <h4>Cuotas Periodo Actual</h4>
     <table class="table" id="tablaCuotasPeriodoActual">
@@ -257,28 +262,32 @@ if (isset($_POST['btnBuscarAlumno'])) {
         </tbody>
     </table>
 </div>
+<?php endif; ?>
 
                         <!-- <div>
                             <button type="button" class="btn btn-primary" id="btnSeleccionarValores">Seleccionar valores</button>
                         </div> -->
 
                         <!-- Sección "Total a Pagar $" -->
-                        <div class="mt-4">
-                            <h4 id="totalAPagar">Total a Pagar $</h4>
-                            <h6>Seleccione Medio de Pago</h6>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="metodoPago" value="efectivo" id="efectivo">
-                                <label class="form-check-label" for="efectivo">Efectivo</label>
+                        <?php if ($mostrarResultados): ?>
+                            <div class="mt-4">
+                                <h4 id="totalAPagar">Total a Pagar $</h4>
+                                <h6>Seleccione Medio de Pago</h6>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="metodoPago" value="efectivo" id="efectivo">
+                                    <label class="form-check-label" for="efectivo">Efectivo</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="metodoPago" value="pagoPos" id="pagoPos">
+                                    <label class="form-check-label" for="pagoPos">Pago Tarjeta POS</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="metodoPago" value="cheque" id="cheque">
+                                    <label class="form-check-label" for="cheque">Cheque</label>
+                                </div>
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="metodoPago" value="pagoPos" id="pagoPos">
-                                <label class="form-check-label" for="pagoPos">Pago Tarjeta POS</label>
-                            </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" name="metodoPago" value="cheque" id="cheque">
-                                <label class="form-check-label" for="cheque">Cheque</label>
-                            </div>
-                        </div>
+                        <?php endif; ?>
+
 
                         <!-- Sección "PAGO CON EFECTIVO" -->
                         <div id="seccionEfectivo" class="mt-4" style="display:none;">
@@ -368,8 +377,10 @@ if (isset($_POST['btnBuscarAlumno'])) {
                             </div>
                         </div>
                         <!-- Botón "REGISTRAR PAGO" en azul -->
-<button type="button" class="btn btn-primary btn-block mt-4" id="btnRegistrarPago">REGISTRAR PAGO</button>
+                        <?php if ($mostrarResultados): ?>
 
+<button type="button" class="btn btn-primary btn-block mt-4" id="btnRegistrarPago">REGISTRAR PAGO</button>
+<?php endif; ?>
 
                     </form>
                 </div>   

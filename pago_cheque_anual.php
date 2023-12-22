@@ -16,6 +16,8 @@ while ($banco = $resultadoBancos->fetch_assoc()) {
 }
 $stmtBancos->close();
 
+$mostrarElementos = false;
+
 
 if (isset($_POST['btnBuscarAlumno'])) {
     $rutAlumno = $_POST['rutAlumno'];
@@ -83,6 +85,8 @@ ORDER BY
         $mensaje = "No se encontraron datos para el RUT ingresado.";
     }
     $stmt->close();
+    $mostrarElementos = true; // Cambiar a true cuando se realiza la búsqueda
+
 }
 
 if (isset($_SESSION['pagoRegistrado'])) {
@@ -131,6 +135,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
                             <input type="text" class="form-control" id="rutAlumno" name="rutAlumno" placeholder="Ingrese RUT del alumno" required>
                             <button type="submit" class="btn btn-primary custom-button mt-3" id="btnBuscarAlumno" name="btnBuscarAlumno">Buscar</button>
                         </div>
+<?php if ($mostrarElementos): ?>
                         
                         <div class="form-group">
 				<table class="table" id="datosBanco">
@@ -159,6 +164,8 @@ if (isset($_SESSION['pagoRegistrado'])) {
 <div id="datosAlumnos">
     <!-- Las tablas generadas se insertarán aquí -->
 </div>
+
+<?php if (count($saldoPeriodoAnterior) > 0): ?>
 <div class="mt-4 table-responsive">
     <h4>Saldo Periodo Anterior</h4>
     <table class="table" id="tablaSaldoPeriodoAnterior">
@@ -237,6 +244,9 @@ if (isset($_SESSION['pagoRegistrado'])) {
         </tbody>
     </table>
 </div>
+<?php endif; ?>
+
+<?php if (count($cuotasPeriodoActual) > 0): ?>
 
 <!-- Tabla de cuotas del periodo actual -->
 <div class="mt-4 table-responsive">
@@ -317,6 +327,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
         </tbody>
     </table>
 </div>
+<?php endif; ?>
 
                         <!-- <div>
                             <button type="button" class="btn btn-primary" id="btnSeleccionarValores">Seleccionar valores</button>
@@ -418,6 +429,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
                         </div>
                         <!-- Botón "REGISTRAR PAGO" en azul -->
 <button type="button" class="btn btn-primary btn-block mt-4" id="btnRegistrarPago">REGISTRAR PAGO</button>
+<?php endif; ?>
 
 
                     </form>
