@@ -1,7 +1,7 @@
 <?php
 // Incluye la conexión a la base de datos
 require_once 'db.php';
- ini_set('display_errors', 1);
+/*  ini_set('display_errors', 1); */
 
 // Inicia sesión
 $actualizacionExitosa = isset($_POST['actualizar']) && !empty($mensaje);
@@ -133,6 +133,7 @@ if (isset($_POST['buscarAlumno'])) {
         $mensaje = "Alumno no encontrado.";
     }
     $stmt->close();
+    $mostrarResultados = true; // Cambiar a true cuando se realiza la búsqueda
 }
 
 
@@ -469,6 +470,7 @@ if (isset($_POST['buscarAlumnoNombre'])) {
         $valorRutAlumno = '-'; 
     }
     $stmt->close();
+    $mostrarResultados = true; // Cambiar a true cuando se realiza la búsqueda
 }
 
 
@@ -499,6 +501,7 @@ if (isset($_POST['buscarAlumnoNombre'])) {
     <button type="submit" class="btn btn-primary custom-button mt-3" name="buscarAlumnoNombre">Buscar por Nombre</button>
 </div>
 </form>
+<?php if ($mostrarResultados): ?>
 
 
 <h1 class="text-center">Datos del alumno</h1>
@@ -638,6 +641,7 @@ if (isset($_POST['buscarAlumnoNombre'])) {
     <button type="submit" class="btn btn-primary btn-block custom-button" name="agregar_observacion" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>Agregar Observación</button>
 </form>
 
+<?php endif; ?>
 
 <script>
     document.addEventListener('DOMContentLoaded', function() {
