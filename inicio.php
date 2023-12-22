@@ -8,6 +8,8 @@
 
         <?php if ($tipoUsuarioActual != 2): ?>
         <a href="registro.php" class="btn btn-outline-primary custom-button m-2">Registro de Usuarios</a>
+        <a href="cambiar_contrasena.php" class="btn btn-outline-primary custom-button m-2">Cambiar Contraseña</a>
+        
 
             <a href="bienvenido.php?page=agregar_alumno" class="btn btn-outline-primary custom-button m-2">Agregar Alumno</a>
             <a href="bienvenido.php?page=agregar_contacto_emergencia" class="btn btn-outline-primary custom-button m-2">Agregar contacto de emergencia</a>
