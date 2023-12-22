@@ -96,6 +96,8 @@ ORDER BY
         $mensaje = "No se encontraron datos para el RUT ingresado.";
     }
     $stmt->close();
+    $mostrarResultados = true; // Cambiar a true cuando se realiza la búsqueda
+
 }
 
 if (isset($_SESSION['pagoRegistrado'])) {
@@ -149,6 +151,7 @@ if (isset($_SESSION['pagoRegistrado'])) {
 
 
 <!-- Tabla de pagos -->
+<?php if ($mostrarResultados): ?>
 
 <div id="datosAlumnos">
     <!-- Las tablas generadas se insertarán aquí -->
@@ -342,6 +345,7 @@ Periodo Escolar
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 <!-- Agrega el script de Bootstrap -->
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js"></script>
