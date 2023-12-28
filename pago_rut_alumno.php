@@ -422,6 +422,10 @@ if (isset($_POST['btnBuscarAlumno'])) {
                                 <input type="text" class="form-control" id="numeroDocumentoCheque" placeholder="Ingrese el número de documento">
                             </div>
                             <div class="form-group">
+                                <label for="tipoDocumentoCheque">Cuenta Corriente</label>
+                                <input type="text" class="form-control" id="cuentaCorriente" placeholder="Ingrese el numero de cuenta corriente">
+                            </div>
+                            <div class="form-group">
                                 <label for="fechaEmisionCheque">Fecha Emisión</label>
                                 <input type="date" class="form-control" id="fechaEmisionCheque">
                             </div>
@@ -628,6 +632,8 @@ document.addEventListener('DOMContentLoaded', function() {
         var numeroDocumentoCheque = document.getElementById('numeroDocumentoCheque').value;
         var fechaEmisionCheque = document.getElementById('fechaEmisionCheque').value;
         var bancoSeleccionado = document.getElementById('bancoCheque').value;
+        var cuentaCorrienteCheque = document.getElementById('cuentaCorriente').value;
+
 
 
        /*  if (montoEfectivo + montoPos + montoCheque !== totalAPagar) {
@@ -658,7 +664,8 @@ document.addEventListener('DOMContentLoaded', function() {
             montoPos: montoPos,
             montoCheque: montoCheque,
             fechaPago: new Date().toISOString().split('T')[0],
-            bancoSeleccionado: bancoSeleccionado
+            bancoSeleccionado: bancoSeleccionado,
+            cuentaCorrienteCheque: cuentaCorrienteCheque
         };
 
         var xhr = new XMLHttpRequest();
