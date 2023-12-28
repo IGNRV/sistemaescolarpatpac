@@ -18,6 +18,105 @@ $stmtBancos->close();
 
 $mostrarElementos = false;
 
+// Consulta para obtener los nombres de los alumnos y sus IDs
+$alumnos = [];
+$stmtAlumnos = $conn->prepare("SELECT ID_ALUMNO, NOMBRE FROM ALUMNO");
+$stmtAlumnos->execute();
+$resultadoAlumnos = $stmtAlumnos->get_result();
+
+while ($alumno = $resultadoAlumnos->fetch_assoc()) {
+    $alumnos[$alumno['ID_ALUMNO']] = $alumno['NOMBRE'];
+}
+$stmtAlumnos->close();
+
+if (isset($_POST['btnBuscarAlumnoNombre'])) {
+    $idAlumnoSeleccionado = $_POST['nombreAlumno']; // Obtiene el ID del alumno seleccionado
+    $fechaActual = date('Y-m-d');
+
+    // Consulta a la base de datos usando el ID del alumno
+    $stmt = $conn->prepare("SELECT 
+        hp.ID_PAGO,
+        hp.ID_ALUMNO,
+        a.RUT_ALUMNO,
+        a.NOMBRE,
+        a.AP_PATERNO,
+        a.AP_MATERNO,
+        hp.CODIGO_PRODUCTO,
+        hp.FOLIO_PAGO,
+        hp.VALOR_ARANCEL,
+        hp.DESCUENTO_BECA,
+        hp.OTROS_DESCUENTOS,
+        hp.VALOR_A_PAGAR,
+        hp.FECHA_PAGO,
+        hp.MEDIO_PAGO,
+        hp.NRO_MEDIOPAGO,
+        hp.FECHA_SUSCRIPCION,
+        hp.BANCO_EMISOR,
+        hp.TIPO_MEDIOPAGO,
+        hp.ESTADO_PAGO,
+        hp.TIPO_DOCUMENTO,
+        hp.NUMERO_DOCUMENTO,
+        hp.FECHA_VENCIMIENTO,
+        hp.FECHA_INGRESO,
+        hp.FECHA_EMISION,
+        hp.FECHA_COBRO,
+        hp.ID_PERIODO_ESCOLAR,
+        hp.CODIGO_PRODUCTO,
+        hp.VALOR_PAGADO
+    FROM
+        c1occsyspay.HISTORIAL_PAGOS AS hp
+        LEFT JOIN
+        ALUMNO AS a ON a.ID_ALUMNO = hp.ID_ALUMNO
+    WHERE
+        a.ID_ALUMNO = ? 
+    ORDER BY
+        hp.FECHA_VENCIMIENTO ASC");
+    $stmt->bind_param("i", $idAlumnoSeleccionado);
+    $stmt->execute();
+    $resultado = $stmt->get_result();
+
+    if ($resultado->num_rows > 0) {
+        $fila = $resultado->fetch_assoc(); // Obtén la primera fila del resultado
+        $nombreAlumno = $fila['NOMBRE']; // Asigna el nombre del alumno
+        $apellidoAlumno = $fila['AP_PATERNO'] . ' ' . $fila['AP_MATERNO']; // Asigna los apellidos del alumno
+        $rutAlumno = $fila['RUT_ALUMNO']; // Asigna el RUT del alumno
+        $resultado->data_seek(0); // Reinicia el puntero del resultado para el bucle while
+
+        while ($fila = $resultado->fetch_assoc()) {
+            $fechaVencimiento = new DateTime($fila['FECHA_VENCIMIENTO']);
+            if ($fechaVencimiento < new DateTime($fechaActual) && $fila['ESTADO_PAGO'] == 0) {
+                // Actualizar el estado a vencido (1) si la fecha de vencimiento es anterior a la fecha actual
+                $updateStmt = $conn->prepare("UPDATE HISTORIAL_PAGOS SET ESTADO_PAGO = 1 WHERE ID_PAGO = ?");
+                $updateStmt->bind_param("i", $fila['ID_PAGO']);
+                $updateStmt->execute();
+                $updateStmt->close();
+                $fila['ESTADO_PAGO'] = 1;
+            }
+            
+            if ($fila['CODIGO_PRODUCTO'] == 2) {
+                $saldoPeriodoAnterior[] = $fila;
+            } elseif ($fila['CODIGO_PRODUCTO'] == 1) {
+                $cuotasPeriodoActual[] = $fila;
+            }
+        }
+        $mensaje = "Datos encontrados.";
+        ?>
+<script>
+        var datosAlumno = {
+            rut: '<?php echo htmlspecialchars($rutAlumno); ?>',
+            nombre: '<?php echo htmlspecialchars($nombreAlumno); ?>',
+            apellido: '<?php echo htmlspecialchars($apellidoAlumno); ?>'
+        };
+</script>
+<?php
+    } else {
+        $mensaje = "No se encontraron datos para el alumno seleccionado.";
+    }
+    $stmt->close();
+    $mostrarElementos = true; // Cambiar a true cuando se realiza la búsqueda
+}
+
+
 
 if (isset($_POST['btnBuscarAlumno'])) {
     $rutAlumno = $_POST['rutAlumno'];
@@ -151,9 +250,26 @@ if (isset($_SESSION['pagoRegistrado'])) {
                         <!-- Campo RUT del alumno -->
                         <div class="form-group">
                             <label for="rutAlumno">Rut del alumno:</label>
-                            <input type="text" class="form-control" id="rutAlumno" name="rutAlumno" placeholder="Ingrese RUT del alumno" required>
+                            <input type="text" class="form-control" id="rutAlumno" name="rutAlumno" placeholder="Ingrese RUT del alumno">
                             <button type="submit" class="btn btn-primary custom-button mt-3" id="btnBuscarAlumno" name="btnBuscarAlumno">Buscar</button>
                         </div>
+                        <div class="form-group">
+    <label for="nombreAlumno">Seleccione un Alumno:</label>
+    <select class="form-control" id="nombreAlumno" name="nombreAlumno">
+        <option value="">Seleccione un Alumno</option>
+        <?php 
+        foreach ($alumnos as $id => $nombre) {
+            // Comprueba si el ID actual coincide con el ID seleccionado
+            $selected = ($id == $idAlumnoSeleccionado) ? 'selected' : '';
+            echo '<option value="' . htmlspecialchars($id) . '" ' . $selected . '>';
+            echo htmlspecialchars($nombre);
+            echo '</option>';
+        }
+        ?>
+    </select>
+    <button type="submit" class="btn btn-primary custom-button mt-3" id="btnBuscarAlumnoNombre" name="btnBuscarAlumnoNombre">Buscar por nombre</button>
+</div>
+
 <?php if ($mostrarElementos): ?>
                         
                         <div class="form-group">
