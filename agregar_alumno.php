@@ -240,30 +240,33 @@ if (isset($_POST['agregarAlumno'])) {
 
         // Fechas de vencimiento
         $periodoEscolarID = $_POST['periodoEscolar'];
-        $fechaIngreso = new DateTime($_POST['fechaingreso']);
-        $anioPeriodoEscolar = substr($periodosEscolares[$periodoEscolarID], 0, 4);
-        $mesFechaIngreso = $fechaIngreso->format('m');
-        $anioFechaIngreso = $fechaIngreso->format('Y');
-    
-        // Define las fechas de vencimiento estándar
-        $fechasVencimiento = [];
-        for ($mes = 3; $mes <= 12; $mes++) {
-            $fechaVencimiento = "$anioPeriodoEscolar-" . str_pad($mes, 2, '0', STR_PAD_LEFT) . "-05";
-            $fechasVencimiento[] = $fechaVencimiento;
-        }
-    
-        // Añade la fecha especial
-        $fechaEspecial = ($anioPeriodoEscolar - 1) . "-12-22";
-        if ($mesFechaIngreso == '12' && $anioFechaIngreso == $anioPeriodoEscolar - 1) {
-            $fechasVencimiento[] = $fechaEspecial;
-        }
-    
-        // Si la fecha de ingreso es de marzo en adelante, ajusta las fechas de vencimiento
-        if ($mesFechaIngreso >= '03' && $anioFechaIngreso == $anioPeriodoEscolar) {
-            $fechasVencimiento = array_filter($fechasVencimiento, function ($fecha) use ($fechaIngreso) {
-                return new DateTime($fecha) >= $fechaIngreso;
-            });
-        }
+    $fechaIngreso = new DateTime($_POST['fechaingreso']);
+    $anioPeriodoEscolar = substr($periodosEscolares[$periodoEscolarID], 0, 4);
+    $mesFechaIngreso = $fechaIngreso->format('m');
+    $anioFechaIngreso = $fechaIngreso->format('Y');
+
+    // Define las fechas de vencimiento estándar
+    $fechasVencimiento = [];
+    for ($mes = 3; $mes <= 12; $mes++) {
+        $fechaVencimiento = "$anioPeriodoEscolar-" . str_pad($mes, 2, '0', STR_PAD_LEFT) . "-05";
+        $fechasVencimiento[] = $fechaVencimiento;
+    }
+
+    // Añade la fecha especial si la fecha de ingreso es en enero o febrero del año seleccionado
+    $fechaEspecial = ($anioPeriodoEscolar - 1) . "-12-22";
+    if (($mesFechaIngreso == '01' || $mesFechaIngreso == '02') && $anioFechaIngreso == $anioPeriodoEscolar) {
+        array_unshift($fechasVencimiento, $fechaEspecial); // Añade la fecha al inicio del array
+    } else if ($mesFechaIngreso == '12' && $anioFechaIngreso == $anioPeriodoEscolar - 1) {
+        $fechasVencimiento[] = $fechaEspecial;
+    }
+
+    // Si la fecha de ingreso es de marzo en adelante, ajusta las fechas de vencimiento
+    if ($mesFechaIngreso >= '03' && $anioFechaIngreso == $anioPeriodoEscolar) {
+        $fechasVencimiento = array_filter($fechasVencimiento, function ($fecha) use ($fechaIngreso) {
+            return new DateTime($fecha) >= $fechaIngreso;
+        });
+    }
+
 
         // Preparar la consulta para insertar en HISTORIAL_PAGOS
         $stmtHistorialPagos = $conn->prepare("INSERT INTO HISTORIAL_PAGOS (ID_PAGO, ID_ALUMNO, RUT_ALUMNO, CODIGO_PRODUCTO, VALOR_ARANCEL, DESCUENTO_BECA, OTROS_DESCUENTOS, VALOR_A_PAGAR, FECHA_PAGO, MEDIO_PAGO, NRO_MEDIOPAGO, FECHA_SUSCRIPCION, ESTADO_PAGO, FECHA_VENCIMIENTO, FECHA_INGRESO, FECHA_COBRO, ID_PERIODO_ESCOLAR) VALUES (?, ?, ?, 1, 95000, 0, 0, 95000, '2100-01-01', 0, 0, '2100-01-01', 0, ?, ?, '2100-01-01', 1)");
