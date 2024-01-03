@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <form method="post" class="mt-4">
                     <div class="form-group">
                         <label for="email">Correo Electrónico:</label>
-                        <input type="email" class="form-control" name="correo_electronico" required>
+                        <input type="email" class="form-control to-uppercase" name="correo_electronico" required>
                     </div>
                     <div class="form-group">
                         <label for="password">Nueva Contraseña:</label>
@@ -139,5 +139,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </script>
     <?php endif; ?>
 </body>
-
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var inputs = document.querySelectorAll('.to-uppercase');
+        inputs.forEach(function(input) {
+            input.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+            });
+        });
+    });
+</script>
 </html>
