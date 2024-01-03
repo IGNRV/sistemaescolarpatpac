@@ -415,7 +415,7 @@ if (isset($_POST['btnBuscarAlumno'])) {
                             <h4>PAGO CON CHEQUE</h4>
                             <div class="form-group">
                                 <label for="tipoDocumentoCheque">Tipo Documento</label>
-                                <input type="text" class="form-control" id="tipoDocumentoCheque" placeholder="Ingrese el tipo de documento">
+                                <input type="text" class="form-control to-uppercase" id="tipoDocumentoCheque" placeholder="Ingrese el tipo de documento">
                             </div>
                             <div class="form-group">
                                 <label for="numeroDocumentoCheque">N°Documento</label>
@@ -454,7 +454,7 @@ if (isset($_POST['btnBuscarAlumno'])) {
                             <h4>PAGO CON TARJETA POS</h4>
                             <div class="form-group">
                                 <label for="tipoDocumentoPos">Tipo Documento</label>
-                                <input type="text" class="form-control" id="tipoDocumentoPos" placeholder="Ingrese el tipo de documento">
+                                <input type="text" class="form-control to-uppercase" id="tipoDocumentoPos" placeholder="Ingrese el tipo de documento">
                             </div>
                             <div class="form-group">
                                 <label for="montoPos">Monto</label>
@@ -879,6 +879,15 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+document.addEventListener('DOMContentLoaded', function() {
+        var inputs = document.querySelectorAll('.to-uppercase');
+        inputs.forEach(function(input) {
+            input.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+            });
+        });
+    });
 
 
 </script>
