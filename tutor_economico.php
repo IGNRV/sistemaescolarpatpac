@@ -448,11 +448,11 @@ $stmtAlumnos->close();
         </div>
         <div class="form-group">
             <label for="correoPersonalTutor">Correo Electrónico Personal</label>
-            <input type="email" class="form-control" name="correo_electronico_particular" id="correoPersonalTutor" value="<?php echo htmlspecialchars($correoPersonal); ?>">
+            <input type="email" class="form-control to-uppercase" name="correo_electronico_particular" id="correoPersonalTutor" value="<?php echo htmlspecialchars($correoPersonal); ?>">
         </div>
         <div class="form-group">
             <label for="correoTrabajoTutor">Correo Electrónico Trabajo</label>
-            <input type="email" class="form-control" name="correo_electronico_trabajo" id="correoTrabajoTutor" value="<?php echo htmlspecialchars($correoTrabajo); ?>">
+            <input type="email" class="form-control to-uppercase" name="correo_electronico_trabajo" id="correoTrabajoTutor" value="<?php echo htmlspecialchars($correoTrabajo); ?>">
         </div>
 
         <div class="form-group">
