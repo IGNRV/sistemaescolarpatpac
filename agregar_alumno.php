@@ -247,8 +247,17 @@ if (isset($_POST['agregarAlumno'])) {
             "$anioPeriodoEscolar-03-05", "$anioPeriodoEscolar-04-05", "$anioPeriodoEscolar-05-05", 
             "$anioPeriodoEscolar-06-05", "$anioPeriodoEscolar-07-05", "$anioPeriodoEscolar-08-05", 
             "$anioPeriodoEscolar-09-05", "$anioPeriodoEscolar-10-05", "$anioPeriodoEscolar-11-05", 
-            "$anioPeriodoEscolar-12-05", "$anioPeriodoEscolar-12-22"
+            "$anioPeriodoEscolar-12-05"
         ];
+
+        // Añade la fecha especial con el año ajustado
+        $fechaEspecial = $anioPeriodoEscolar . "-12-22"; // Fecha original
+        if ($fechaEspecial === "$anioPeriodoEscolar-12-22") {
+            $anioAnterior = $anioPeriodoEscolar - 1;
+            $fechaEspecial = "$anioAnterior-12-22";
+        }
+        $fechasVencimiento[] = $fechaEspecial; // Añade la fecha ajustada al final del array
+
 
         // Preparar la consulta para insertar en HISTORIAL_PAGOS
         $stmtHistorialPagos = $conn->prepare("INSERT INTO HISTORIAL_PAGOS (ID_PAGO, ID_ALUMNO, RUT_ALUMNO, CODIGO_PRODUCTO, VALOR_ARANCEL, DESCUENTO_BECA, OTROS_DESCUENTOS, VALOR_A_PAGAR, FECHA_PAGO, MEDIO_PAGO, NRO_MEDIOPAGO, FECHA_SUSCRIPCION, ESTADO_PAGO, FECHA_VENCIMIENTO, FECHA_INGRESO, FECHA_COBRO, ID_PERIODO_ESCOLAR) VALUES (?, ?, ?, 1, 95000, 0, 0, 95000, '2100-01-01', 0, 0, '2100-01-01', 0, ?, ?, '2100-01-01', 1)");
