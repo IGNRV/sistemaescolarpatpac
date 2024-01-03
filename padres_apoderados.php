@@ -530,11 +530,11 @@ if (isset($_POST['buscarAlumnoNombre'])) {
         </div>
         <div class="form-group">
             <label for="correoElectronicoPersonal">Correo Electrónico Personal</label>
-            <input type="email" class="form-control" name="correoElectronicoPersonal" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
+            <input type="email" class="form-control to-uppercase" name="correoElectronicoPersonal" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
         </div>
         <div class="form-group">
             <label for="correoElectronicoTrabajo">Correo Electrónico Trabajo</label>
-            <input type="email" class="form-control" name="correoElectronicoTrabajo" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
+            <input type="email" class="form-control to-uppercase" name="correoElectronicoTrabajo" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
         </div>
         <div class="form-group">
             <label for="tutorAcademico">Tutor Academico</label>
