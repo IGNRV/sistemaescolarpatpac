@@ -522,7 +522,7 @@ if (isset($_POST['buscarAlumnoNombre'])) {
     </div>
     <div class="form-group">
         <label>Nombre:</label>
-        <input type="text" class="form-control" name="name" value="<?php echo isset($alumno['NOMBRE']) ? $alumno['NOMBRE'] : ''; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
+        <input type="text" class="form-control to-uppercase" name="name" value="<?php echo isset($alumno['NOMBRE']) ? $alumno['NOMBRE'] : ''; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
     </div>
                 <div class="form-group">
                     <label>Apellido Paterno:</label>
@@ -630,15 +630,15 @@ if (isset($_POST['buscarAlumnoNombre'])) {
     <input type="hidden" name="rutAlumno" value="<?php echo htmlspecialchars($rutAlumno); ?>">
     <div class="form-group">
         <label>Categoría:</label>
-        <input type="text" class="form-control" name="categoria" required <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
+        <input type="text" class="form-control to-uppercase" name="categoria" required <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
     </div>
     <div class="form-group">
         <label>Descripción:</label>
-        <textarea class="form-control" name="descripcion" required <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>></textarea>
+        <textarea class="form-control to-uppercase" name="descripcion" required <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>></textarea>
     </div>
     <div class="form-group">
         <label>Fecha:</label>
-        <input type="date" class="form-control" name="fecha" required <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
+        <input type="date" class="form-control to-uppercase" name="fecha" required <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
     </div>
     <button type="submit" class="btn btn-primary btn-block custom-button" name="agregar_observacion" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>Agregar Observación</button>
 </form>
