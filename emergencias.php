@@ -251,7 +251,7 @@ $stmtAlumnos->close();
                 </div>
                 <div class="form-group col-md-6">
                     <label for="inputEmail">Correo Electrónico</label>
-                    <input type="email" name="mail_emergencia" class="form-control" id="inputEmail" value="<?php echo isset($contactoEmergencia['MAIL_EMERGENCIA']) ? $contactoEmergencia['MAIL_EMERGENCIA'] : ''; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
+                    <input type="email" name="mail_emergencia" class="form-control to-uppercase" id="inputEmail" value="<?php echo isset($contactoEmergencia['MAIL_EMERGENCIA']) ? $contactoEmergencia['MAIL_EMERGENCIA'] : ''; ?>" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>
                 </div>
             </div>
             <button type="submit" class="btn btn-primary btn-block" name="actualizar_contacto" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>ACTUALIZAR CONTACTO DE EMERGENCIA</button>
