@@ -584,7 +584,7 @@ if (isset($_POST['buscarAlumnoNombre'])) {
     </div>
                 <div class="form-group">
                     <label>Email:</label>
-                    <input type="email" class="form-control" name="mail" value="<?php echo isset($alumno['MAIL']) ? $alumno['MAIL'] : ''; ?>">
+                    <input type="email" class="form-control to-uppercase" name="mail" value="<?php echo isset($alumno['MAIL']) ? $alumno['MAIL'] : ''; ?>">
                 </div>
                 <div class="form-group">
                     <label>Número de teléfono:</label>
