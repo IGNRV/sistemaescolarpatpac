@@ -121,15 +121,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <form method="post" action="registro.php" class="mt-4">
                         <div class="form-group">
                             <label for="usuario">Usuario:</label>
-                            <input type="text" class="form-control uppercase" name="usuario" value="<?php echo isset($_POST['usuario']) ? htmlspecialchars($_POST['usuario']) : ''; ?>" required>
+                            <input type="text" class="form-control to-uppercase" name="usuario" value="<?php echo isset($_POST['usuario']) ? htmlspecialchars($_POST['usuario']) : ''; ?>" required>
                         </div>
                         <div class="form-group">
                             <label for="nombre">Nombre:</label>
-                            <input type="text" class="form-control uppercase" name="nombre" value="<?php echo isset($_POST['nombre']) ? htmlspecialchars($_POST['nombre']) : ''; ?>" required>
+                            <input type="text" class="form-control to-uppercase" name="nombre" value="<?php echo isset($_POST['nombre']) ? htmlspecialchars($_POST['nombre']) : ''; ?>" required>
                         </div>
                         <div class="form-group">
                             <label for="email">Correo Electrónico:</label>
-                            <input type="email" class="form-control" name="correo_electronico" value="<?php echo isset($_POST['correo_electronico']) ? htmlspecialchars($_POST['correo_electronico']) : ''; ?>" required>
+                            <input type="email" class="form-control to-uppercase" name="correo_electronico" value="<?php echo isset($_POST['correo_electronico']) ? htmlspecialchars($_POST['correo_electronico']) : ''; ?>" required>
                         </div>
                         <div class="form-group">
     <label for="tipoUsuario">Tipo de Usuario:</label>
@@ -186,7 +186,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $('#errorModal').modal('show');
             });
         </script>
+       
     <?php endif; ?>
 </body>
-
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        var inputs = document.querySelectorAll('.to-uppercase');
+        inputs.forEach(function(input) {
+            input.addEventListener('input', function() {
+                this.value = this.value.toUpperCase();
+            });
+        });
+    });
+</script>
 </html>
