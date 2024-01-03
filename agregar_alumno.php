@@ -347,7 +347,7 @@ if (isset($_POST['agregarAlumno'])) {
     
     <div class="form-group">
         <label>Email:</label>
-        <input type="email" class="form-control" name="mailNuevo">
+        <input type="email" class="form-control to-uppercase" name="mailNuevo">
     </div>
     <div class="form-group">
         <label>Teléfono:</label>

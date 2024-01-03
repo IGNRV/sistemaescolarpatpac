@@ -129,7 +129,7 @@ $rutAlumno = isset($_POST['rutAlumno']) ? $_POST['rutAlumno'] : '';
                 </div>
                 <div class="form-group col-md-6">
                     <label for="inputEmail">Correo Electrónico</label>
-                    <input type="email" name="mail_emergencia" class="form-control" id="inputEmail" value="">
+                    <input type="email" name="mail_emergencia" class="form-control to-uppercase" id="inputEmail" value="">
                 </div>
                 <div class="form-group col-md-6">
                     <label for="parentesco">Parentesco</label>
