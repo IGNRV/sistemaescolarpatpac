@@ -276,12 +276,12 @@ if ($apoderado != null) {
 
                             <div class="form-group">
                                 <label for="correoElectronicoPersonal">Correo Electrónico Personal</label>
-                                <input type="email" class="form-control" name="correoElectronicoPersonal" value="<?php echo $apoderado['MAIL_PART']; ?>">
+                                <input type="email" class="form-control to-uppercase" name="correoElectronicoPersonal" value="<?php echo $apoderado['MAIL_PART']; ?>">
                             </div>
 
                             <div class="form-group">
                                 <label for="correoElectronicoTrabajo">Correo Electrónico de Trabajo</label>
-                                <input type="email" class="form-control" name="correoElectronicoTrabajo" value="<?php echo $apoderado['MAIL_LAB']; ?>">
+                                <input type="email" class="form-control to-uppercase" name="correoElectronicoTrabajo" value="<?php echo $apoderado['MAIL_LAB']; ?>">
                             </div>
 
                             <div class="form-group">
