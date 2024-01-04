@@ -53,10 +53,12 @@ if (isset($_POST['buscarAlumno'])) {
                                 ap.NOMBRE,
                                 ap.AP_PATERNO,
                                 ap.AP_MATERNO,
-                                ap.PARENTESCO,
+                                ap.PARENTESCO AS PARENTESCO_APODERADO,
+                                raa.PARENTESCO AS PARENTESCO_RELACION,
                                 ap.MAIL_PART,
                                 ap.FONO_PART,
-                                raa.DELETE_FLAG
+                                raa.DELETE_FLAG,
+                                raa.ID_RELACION
                             FROM
                                 ALUMNO AS a
                                     LEFT JOIN
@@ -72,6 +74,21 @@ if (isset($_POST['buscarAlumno'])) {
     if ($resultado->num_rows > 0) {
         $mensaje = "Datos del alumno encontrados.";
         $apoderados = $resultado->fetch_all(MYSQLI_ASSOC);
+
+        foreach ($apoderados as $key => $apoderado) {
+            if (empty($apoderado['PARENTESCO_RELACION'])) {
+                $apoderados[$key]['PARENTESCO_RELACION'] = $apoderado['PARENTESCO_APODERADO'];
+
+                // Actualizar en la base de datos
+                $parentescoApoderado = $apoderado['PARENTESCO_APODERADO'];
+                $idRelacion = $apoderado['ID_RELACION'];
+
+                $stmtUpdate = $conn->prepare("UPDATE REL_ALUM_APOD SET PARENTESCO = ? WHERE ID_RELACION = ?");
+                $stmtUpdate->bind_param("si", $parentescoApoderado, $idRelacion);
+                $stmtUpdate->execute();
+                $stmtUpdate->close();
+            }
+        }
     } else {
         $mensaje = "No se encontró ningún alumno con ese RUT.";
     }
@@ -321,7 +338,7 @@ if (isset($_POST['buscarAlumnoNombre'])) {
     if ($filaRutAlumno = $resultadoRutAlumno->fetch_assoc()) {
         $rutAlumno = $filaRutAlumno['RUT_ALUMNO'];
 
-        // Luego, consulta para obtener los apoderados basados en RUT_ALUMNO
+        // Consulta para obtener los apoderados basados en RUT_ALUMNO
         $stmt = $conn->prepare("SELECT 
                                     a.ID_ALUMNO,
                                     a.RUT_ALUMNO,
@@ -329,10 +346,12 @@ if (isset($_POST['buscarAlumnoNombre'])) {
                                     ap.NOMBRE,
                                     ap.AP_PATERNO,
                                     ap.AP_MATERNO,
-                                    ap.PARENTESCO,
+                                    ap.PARENTESCO AS PARENTESCO_APODERADO,
+                                    raa.PARENTESCO AS PARENTESCO_RELACION,
                                     ap.MAIL_PART,
                                     ap.FONO_PART,
-                                    raa.DELETE_FLAG
+                                    raa.DELETE_FLAG,
+                                    raa.ID_RELACION
                                 FROM
                                     ALUMNO AS a
                                         LEFT JOIN
@@ -347,6 +366,21 @@ if (isset($_POST['buscarAlumnoNombre'])) {
 
         if ($resultado->num_rows > 0) {
             $apoderados = $resultado->fetch_all(MYSQLI_ASSOC);
+
+            foreach ($apoderados as $key => $apoderado) {
+                if (empty($apoderado['PARENTESCO_RELACION'])) {
+                    $apoderados[$key]['PARENTESCO_RELACION'] = $apoderado['PARENTESCO_APODERADO'];
+
+                    // Actualizar en la base de datos
+                    $parentescoApoderado = $apoderado['PARENTESCO_APODERADO'];
+                    $idRelacion = $apoderado['ID_RELACION'];
+
+                    $stmtUpdate = $conn->prepare("UPDATE REL_ALUM_APOD SET PARENTESCO = ? WHERE ID_RELACION = ?");
+                    $stmtUpdate->bind_param("si", $parentescoApoderado, $idRelacion);
+                    $stmtUpdate->execute();
+                    $stmtUpdate->close();
+                }
+            }
         }
         $stmt->close();
     }
@@ -402,11 +436,11 @@ if (isset($_POST['buscarAlumnoNombre'])) {
             ?>
         </td>
             <td><?php echo htmlspecialchars($apoderado['NOMBRE']) . " " . htmlspecialchars($apoderado['AP_PATERNO']) . " " . htmlspecialchars($apoderado['AP_MATERNO']); ?></td>
-            <td><?php echo htmlspecialchars($apoderado['PARENTESCO']); ?></td>
+            <td><?php echo htmlspecialchars($apoderado['PARENTESCO_RELACION']); ?></td>
             <td><?php echo htmlspecialchars($apoderado['MAIL_PART']); ?></td>
             <td><?php echo htmlspecialchars($apoderado['FONO_PART']); ?></td>
             <td>
-                <button onclick="location.href='/sistemaescolar/editar_apoderado.php?rut=<?php echo $apoderado['RUT_APODERADO']; ?>'" class="btn btn-info" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>Editar</button>
+                <button onclick="location.href='/sistemaescolar/editar_apoderado.php?rut=<?php echo $apoderado['RUT_APODERADO']; ?>&idRelacion=<?php echo $apoderado['ID_RELACION']; ?>'" class="btn btn-info" <?php echo ($tipoUsuarioActual == 2) ? 'disabled' : ''; ?>>Editar</button>
             </td>
             <td>
                 <form method="post">

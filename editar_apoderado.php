@@ -15,13 +15,14 @@ if (!isset($_SESSION['EMAIL'])) {
 
 
 $EMAIL = $_SESSION['EMAIL'];
-
 $queryUsuario = "SELECT ID FROM USERS WHERE EMAIL = '$EMAIL'";
 $resultadoUsuario = $conn->query($queryUsuario);
 
 
 $mensaje = '';
 $apoderado = null;
+$idRelacion = isset($_GET['idRelacion']) ? $_GET['idRelacion'] : null; // Recuperar el ID de la relación
+
 
 if (isset($_GET['rut'])) {
     $rutApoderado = $_GET['rut'];
@@ -38,6 +39,18 @@ if (isset($_GET['rut'])) {
         $mensaje = "No se encontró el apoderado.";
     }
     $stmt->close();
+
+    // Consulta para obtener el parentesco actual de la relación
+    if ($idRelacion) {
+        $stmtParentesco = $conn->prepare("SELECT PARENTESCO FROM REL_ALUM_APOD WHERE ID_RELACION = ?");
+        $stmtParentesco->bind_param("i", $idRelacion);
+        $stmtParentesco->execute();
+        $resultadoParentesco = $stmtParentesco->get_result();
+        if ($filaParentesco = $resultadoParentesco->fetch_assoc()) {
+            $parentescoActual = $filaParentesco['PARENTESCO'];
+        }
+        $stmtParentesco->close();
+    }
 }
 
 if (isset($_POST['actualizar_apoderado'])) {
@@ -55,18 +68,16 @@ if (isset($_POST['actualizar_apoderado'])) {
     $fonoPart = $_POST['telefonoParticular'];
     $mailPart = $_POST['correoElectronicoPersonal'];
     $mailLab = $_POST['correoElectronicoTrabajo'];
+
     if (empty($_POST['rut'])) {
-        // Genera un hash aleatorio de 10 caracteres como máximo
-        $rut = substr(md5(uniqid(rand(), true)), 0, 10); // Usar md5 y uniqid para generar un hash y luego cortarlo a 10 caracteres
+        $rut = substr(md5(uniqid(rand(), true)), 0, 10);
     } else {
-        // Si no está vacío, usa el valor de $_POST['rut']
         $rut = $_POST['rut'];
     }
+
     $tutorAcademico = isset($_POST['tutorAcademico']) ? 1 : 0;
     $tutorEconomico = isset($_POST['tutorEconomico']) ? 1 : 0;
-    
 
-    // Necesitas encontrar el ID_REGION correspondiente a esta comuna
     $consultaRegion = $conn->prepare("SELECT ID_REGION FROM COMUNA WHERE ID_COMUNA = ?");
     $consultaRegion->bind_param("i", $comuna);
     $consultaRegion->execute();
@@ -76,77 +87,84 @@ if (isset($_POST['actualizar_apoderado'])) {
         $filaRegion = $resultadoRegion->fetch_assoc();
         $idRegion = $filaRegion['ID_REGION'];
 
-        // Verifica si algún dato ha cambiado
         $hayCambios = $parentesco != $apoderado['PARENTESCO'] ||
-              $nombre != $apoderado['NOMBRE'] ||
-              $apellidoPaterno != $apoderado['AP_PATERNO'] ||
-              $apellidoMaterno != $apoderado['AP_MATERNO'] ||
-              $fechaNac != $apoderado['FECHA_NAC'] ||
-              $calle != $apoderado['CALLE'] ||
-              $nCalle != $apoderado['NRO_CALLE'] ||
-              $obsDireccion != $apoderado['OBS_DIRECCION'] ||
-              $villaPoblacion != $apoderado['VILLA'] ||
-              $comuna != $apoderado['ID_COMUNA'] ||
-              $fonoPart != $apoderado['FONO_PART'] ||
-              $mailPart != $apoderado['MAIL_PART'] ||
-              $mailLab != $apoderado['MAIL_LAB'] ||
-              $rut != $apoderado['RUT_APODERADO'] || // Incluye la comparación del RUT
-              $tutorAcademico != $apoderado['TUTOR_ACADEMICO'] ||
-              $tutorEconomico != $apoderado['TUTOR_ECONOMICO'];
+                      $nombre != $apoderado['NOMBRE'] ||
+                      $apellidoPaterno != $apoderado['AP_PATERNO'] ||
+                      $apellidoMaterno != $apoderado['AP_MATERNO'] ||
+                      $fechaNac != $apoderado['FECHA_NAC'] ||
+                      $calle != $apoderado['CALLE'] ||
+                      $nCalle != $apoderado['NRO_CALLE'] ||
+                      $obsDireccion != $apoderado['OBS_DIRECCION'] ||
+                      $villaPoblacion != $apoderado['VILLA'] ||
+                      $comuna != $apoderado['ID_COMUNA'] ||
+                      $fonoPart != $apoderado['FONO_PART'] ||
+                      $mailPart != $apoderado['MAIL_PART'] ||
+                      $mailLab != $apoderado['MAIL_LAB'] ||
+                      $rut != $apoderado['RUT_APODERADO'] ||
+                      $tutorAcademico != $apoderado['TUTOR_ACADEMICO'] ||
+                      $tutorEconomico != $apoderado['TUTOR_ECONOMICO'];
 
         if ($hayCambios) {
-            // Actualiza los datos en la base de datos con el ID_COMUNA e ID_REGION
-        	$fechaNac2 = date("Y-m-d", strtotime($fechaNac));
+            $fechaNac2 = date("Y-m-d", strtotime($fechaNac));
             $stmtActualizar = $conn->prepare("UPDATE APODERADO SET PARENTESCO = ?, NOMBRE = ?, AP_PATERNO = ?, AP_MATERNO = ?, FECHA_NAC = ?, CALLE = ?, NRO_CALLE = ?, OBS_DIRECCION = ?, VILLA = ?, ID_COMUNA = ?, ID_REGION = ?, FONO_PART = ?, MAIL_PART = ?, MAIL_LAB = ?, TUTOR_ACADEMICO = ?, RUT_APODERADO = ?, TUTOR_ECONOMICO = ? WHERE RUT_APODERADO = ?");
             $stmtActualizar->bind_param("ssssssssssssssssis", $parentesco, $nombre, $apellidoPaterno, $apellidoMaterno, $fechaNac2, $calle, $nCalle, $obsDireccion, $villaPoblacion, $comuna, $idRegion, $fonoPart, $mailPart, $mailLab, $tutorAcademico, $rut, $tutorEconomico, $rutOriginal);
             $stmtActualizar->execute();
 
-            // Obtener el ID del usuario que inició sesión
-        $emailUsuario = $_SESSION['EMAIL'];
-        $queryUsuario = "SELECT ID FROM USERS WHERE EMAIL = ?";
-        $stmtUsuario = $conn->prepare($queryUsuario);
-        $stmtUsuario->bind_param("s", $emailUsuario);
-        $stmtUsuario->execute();
-        $resultadoUsuario = $stmtUsuario->get_result();
-        $usuario = $resultadoUsuario->fetch_assoc();
-        $idUsuario = $usuario['ID'];
-        $stmtUsuario->close();
+            $emailUsuario = $_SESSION['EMAIL'];
+            $queryUsuario = "SELECT ID FROM USERS WHERE EMAIL = ?";
+            $stmtUsuario = $conn->prepare($queryUsuario);
+            $stmtUsuario->bind_param("s", $emailUsuario);
+            $stmtUsuario->execute();
+            $resultadoUsuario = $stmtUsuario->get_result();
+            $usuario = $resultadoUsuario->fetch_assoc();
+            $idUsuario = $usuario['ID'];
+            $stmtUsuario->close();
 
-        // Obtener el ID del apoderado
-        $idApoderado = $apoderado['ID_APODERADO']; // Asumiendo que 'ID' es la columna que contiene el ID del apoderado
+            $idApoderado = $apoderado['ID_APODERADO'];
+            $tipoCambio = "INFORMACION DE APODERADO EDITADA";
 
-        // Tipo de cambio
-        $tipoCambio = "INFORMACION DE APODERADO EDITADA";
+            $stmtHistorial = $conn->prepare("INSERT INTO HISTORIAL_CAMBIOS (ID_USUARIO, TIPO_CAMBIO, ID_APODERADO) VALUES (?, ?, ?)");
+            $stmtHistorial->bind_param("isi", $idUsuario, $tipoCambio, $idApoderado);
+            $stmtHistorial->execute();
+            $stmtHistorial->close();
 
-        // Insertar registro en HISTORIAL_CAMBIOS
-        $stmtHistorial = $conn->prepare("INSERT INTO HISTORIAL_CAMBIOS (ID_USUARIO, TIPO_CAMBIO, ID_APODERADO) VALUES (?, ?, ?)");
-        $stmtHistorial->bind_param("isi", $idUsuario, $tipoCambio, $idApoderado);
-        $stmtHistorial->execute();
-        $stmtHistorial->close();
             if ($stmtActualizar->affected_rows > 0) {
                 $_SESSION['mensaje_exito'] = "Datos del apoderado actualizados correctamente.";
-                header("Location: https://antilen.pat-pac.cl/sistemaescolar/bienvenido.php?page=padres_apoderados");
-                exit;
             } else {
                 $_SESSION['mensaje_exito'] = "No se realizaron cambios en los datos.";
-                header("Location: https://antilen.pat-pac.cl/sistemaescolar/bienvenido.php?page=padres_apoderados");
-                exit;
-
             }
         } else {
-            // Si no hay cambios, envía un mensaje de éxito
             $_SESSION['mensaje_exito'] = "No se realizaron cambios en los datos.";
-            header("Location: https://antilen.pat-pac.cl/sistemaescolar/bienvenido.php?page=padres_apoderados");
-            exit;
         }
+
+        $stmtActualizar->close();
     } else {
         $mensaje = "No se pudo encontrar la región para la comuna seleccionada.";
     }
+
     $consultaRegion->close();
-    if (isset($stmtActualizar)) {
-        $stmtActualizar->close();
+
+    // Actualización del parentesco en la tabla REL_ALUM_APOD
+    if ($idRelacion) {
+        $nuevoParentesco = $_POST['parentesco'];
+
+        $stmtActualizarParentesco = $conn->prepare("UPDATE REL_ALUM_APOD SET PARENTESCO = ? WHERE ID_RELACION = ?");
+        $stmtActualizarParentesco->bind_param("si", $nuevoParentesco, $idRelacion);
+        $stmtActualizarParentesco->execute();
+
+        if ($stmtActualizarParentesco->affected_rows > 0) {
+            /* $_SESSION['mensaje_exito'] .= " Parentesco actualizado correctamente."; */
+        } else {
+            $_SESSION['mensaje_error'] = " No se pudo actualizar el parentesco.";
+        }
+
+        $stmtActualizarParentesco->close();
     }
+
+    header("Location: https://antilen.pat-pac.cl/sistemaescolar/bienvenido.php?page=padres_apoderados");
+    exit;
 }
+
 
 
 if ($apoderado != null) {
@@ -205,7 +223,7 @@ if ($apoderado != null) {
 
                             <div class="form-group">
                                 <label for="parentesco">Parentesco</label>
-                                <input type="text" class="form-control to-uppercase" name="parentesco" value="<?php echo $apoderado['PARENTESCO']; ?>">
+                                <input type="text" class="form-control to-uppercase" name="parentesco" value="<?php echo isset($parentescoActual) ? $parentescoActual : ''; ?>">
                             </div>
 
                             <div class="form-group">
@@ -276,12 +294,12 @@ if ($apoderado != null) {
 
                             <div class="form-group">
                                 <label for="correoElectronicoPersonal">Correo Electrónico Personal</label>
-                                <input type="email" class="form-control to-uppercase" name="correoElectronicoPersonal" value="<?php echo $apoderado['MAIL_PART']; ?>">
+                                <input type="email" class="form-control" name="correoElectronicoPersonal" value="<?php echo $apoderado['MAIL_PART']; ?>">
                             </div>
 
                             <div class="form-group">
                                 <label for="correoElectronicoTrabajo">Correo Electrónico de Trabajo</label>
-                                <input type="email" class="form-control to-uppercase" name="correoElectronicoTrabajo" value="<?php echo $apoderado['MAIL_LAB']; ?>">
+                                <input type="email" class="form-control" name="correoElectronicoTrabajo" value="<?php echo $apoderado['MAIL_LAB']; ?>">
                             </div>
 
                             <div class="form-group">
